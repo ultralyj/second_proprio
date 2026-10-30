@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "timezone": "Asia/Shanghai",
+  "paths": {
+    "papers": "papers",
+    "courses": "courses",
+    "private": "private",
+    "state": ".state"
+  },
+  "scheduler": {
+    "enabled": true,
+    "start_date": "2026-10-29",
+    "sync_interval_seconds": 300,
+    "retry_seconds": 1800,
+    "max_attempts": 3
+  },
+  "schedules": {
+    "papers": {
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "times": [
+        "12:30"
+      ],
+      "enabled": true
+    },
+    "course": {
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "times": [
+        "08:00"
+      ],
+      "enabled": true
+    },
+    "review": {
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "times": [
+        "22:30"
+      ],
+      "enabled": true
+    },
+    "care": {
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "times": [
+        "10:30",
+        "14:00",
+        "17:30",
+        "20:00",
+        "22:00"
+      ],
+      "enabled": true
+    }
+  },
+  "server": {
+    "enabled": true,
+    "ssh_host": "tencent-vps",
+    "root": "/home/ubuntu/second-proprio",
+    "connect_timeout_seconds": 8
+  },
+  "arxiv": {
+    "lookback_days": 7,
+    "max_papers_per_day": 3,
+    "request_interval_seconds": 3.1,
+    "topics": [
+      {
+        "id": "dexterous-manipulation",
+        "name": "灵巧手与操作",
+        "categories": [
+          "cs.RO",
+          "cs.LG",
+          "cs.AI",
+          "cs.CV"
+        ],
+        "keywords": [
+          "dexterous",
+          "in-hand",
+          "tactile manipulation",
+          "robot hand"
+        ],
+        "exclude_keywords": []
+      }
+    ]
+  },
+  "course": {
+    "daily_new_lessons": 1,
+    "level": "已有IL/RL基础"
+  },
+  "review": {
+    "source_directory": "private/chat-imports"
+  },
+  "relationship": {
+    "name": "llq",
+    "anchor_date": "2026-10-29",
+    "anchor_days": 973,
+    "mood_min": 1,
+    "mood_max": 5,
+    "prompts": [
+      "问问她今天过得怎么样，认真听她想分享的事。",
+      "关心她有没有按时吃饭、休息，顺着她的需要回应。",
+      "分享一件今天的小事，也留一点时间听她说话。",
+      "看看今天有没有她希望你帮忙或陪伴的事情。",
+      "温柔地道声晚安，记住她今天提到的重要小事。"
+    ]
+  },
+  "runtime": {
+    "codex_command": "codex",
+    "model": null,
+    "timeout_seconds": 1800,
+    "notify": true,
+    "auto_run": true
+  },
+  "desktop": {
+    "appearance": "system",
+    "notifications": "content_and_action",
+    "launch_at_login": true
+  }
+}

@@ -1,0 +1,213 @@
+[
+  {
+    "figure_id": "PDF.F1",
+    "caption": "原文图1：四种物体在不同手腕方向下连续到达目标位姿；虚线为目标，箭头为时间方向。",
+    "source_url": "https://arxiv.org/pdf/2610.37652v1#page=1",
+    "path": "figures/figure-00-fig1.png",
+    "status": "saved",
+    "extraction": "原始PDF第1页直接渲染裁图，150 dpi；HTML版本缺失此图"
+  },
+  {
+    "figure_id": "S4.F2",
+    "caption": "Fig. 2: Hardware setup. (a) The UR5 arm with the LEAP hand inside the motion-capture cage. (b) Close-up of the hand and the wrist-mounted stereo camera. (c) Workspace camera view. (d) Wrist camera view.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/hardware_col_nolabels_duck14.png",
+    "path": "figures/figure-01-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S4.F3",
+    "caption": "Fig. 3: Objects used in our experiments. For each object we show its simulation mesh, its collision meshes from convex decomposition, the real object, and the real object with motion-capture markers.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/objcoll_a_pairs_2x2_4panel.png",
+    "path": "figures/figure-02-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S5.F4",
+    "caption": "Fig. 4: Training pipeline. A1–A4: The task policy: A1 PPO with privileged observations and an asymmetric critic, A2 DAgger into a deployable state student, A3 PPO fine-tuning of that student, and A4 DAgger into a depth student. B1–B2: The safety filter: B1 learns a residual safety filter on top of the frozen A3 policy; B2 distills it into a depth student filter on top of A4. C: This gives a task policy and a safety filter that use either motion capture or the wrist camera, and both transfer zero-shot to the real robot.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/combined13_color_aux_v8.png",
+    "path": "figures/figure-03-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S6.F5",
+    "caption": "Fig. 5: Effect of the correction weight $w$ in simulation. Coarse goal success vs. time to the first drop, per object, for the state (left) and depth (right) policies, from no filter (hollow) through $w=2$ to 0.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/dial_surv_1panel_state_depth_seq_col_1x2.svg",
+    "path": "figures/figure-04-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S6.F6",
+    "caption": "Fig. 6: Knife curriculum ablation over 3 seeds. Goals per episode during A1 for each curriculum variant, including a gravity curriculum (0 $\\to$ 9.81 m/s 2 ). Mean with min–max band; dots mark full difficulty. Gravity runs are faded, since most do not reach full gravity within 10k iterations.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/curric_knife_seeds_goals_grav_col.svg",
+    "path": "figures/figure-06-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S6.F7",
+    "caption": "Fig. 7: The six evaluation wrist orientations , which point gravity along each axis of the hand.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/orientations_duck_2x3_fadeblur_col_pill.png",
+    "path": "figures/figure-07-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S6.F8",
+    "caption": "Fig. 8: ResSafe prevents a drop. The same wineglass goal (palm down, depth policy) without the filter (top), where the glass slips and falls, and with it (bottom). The red line traces the falling glass.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/wineglass_fade_no4_col.png",
+    "path": "figures/figure-09-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S6.F9",
+    "caption": "Fig. 9: Spinning the lightbulb about its own axis (depth policy). Palm up (top) and down (bottom), counter-clockwise (left) and clockwise (right) goals.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/twist_web_2x2_fadeblur_sharp_flip.png",
+    "path": "figures/figure-10-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S6.F10",
+    "caption": "Fig. 10: Difficult out-of-distribution goals reached on the real robot (palm down, state policy; dashed green outline: goal).",
+    "source_url": "https://arxiv.org/html/2610.37652v1/hard_2x2_col_4x3_duckg7_wg3.png",
+    "path": "figures/figure-11-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S6.F11",
+    "caption": "Fig. 11: Rotating object during large arm motion. During a 30 s arm trajectory, the depth policy keeps the lightbulb and the duck spinning. Four poses are shown, with the object path colored by time; the orange arrow is the commanded rotation.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/motion_onion_plain_timebar_rot_col_vbar.png",
+    "path": "figures/figure-12-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S6.F12",
+    "caption": "Fig. 12: Robustness to physical disturbances (depth policy, no filter). Left: a finger is perturbed while the hand holds the object, and the hand keeps the object on goal. Right: the object is pushed into the palm, and the hand recovers and returns it to the goal about 4 s after release.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/qr6b_filmstrips_compact_timeline_pull_v8.png",
+    "path": "figures/figure-13-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S6.F13",
+    "caption": "Fig. 13: Multi-step arm and hand tasks with the depth policy, using only the wrist camera (no motion capture or external cameras).",
+    "source_url": "https://arxiv.org/html/2610.37652v1/seq_wide_blocks_sep.png",
+    "path": "figures/figure-14-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S6.F14",
+    "caption": "Fig. 14: Wrist-camera input during the tasks of Fig. 13 , with clutter in the background. Camera image (top) and the depth the policy receives (bottom).",
+    "source_url": "https://arxiv.org/html/2610.37652v1/clutter_wristonly_2x3_col_vbar.png",
+    "path": "figures/figure-15-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F15",
+    "caption": "Fig. 15: Actuator identification of the XC330 servo. Left: pendulum test bench (mass $m$ , arm length $L$ ). Right: commanded, real and identified-model angles on three test trajectories.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/sysid_photo_3traj_col.png",
+    "path": "figures/figure-17-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F16",
+    "caption": "Fig. 16: Sim-to-real check of the identified hand. The same chirp on all 16 actions, played on the real hand and replayed in simulation. Top: hand and wrist depth at the same instant. Bottom: all 16 joints, real (solid) vs. simulated (dashed).",
+    "source_url": "https://arxiv.org/html/2610.37652v1/sysidfig_row_2to12_dash_col.png",
+    "path": "figures/figure-18-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F17",
+    "caption": "Fig. 17: Example grasps from the grasp datasets generated with LightningGrasp [ 37 ] and expanded by RRT.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/sim_grid_dataset_3x4_diverse_jitter_col.png",
+    "path": "figures/figure-21-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F18",
+    "caption": "Fig. 18: Simulated depth observations. Scene with distractors, wrist camera view, rendered depth and augmented depth.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/sim_overview_duck_2x2_col_vbar.png",
+    "path": "figures/figure-23-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F19",
+    "caption": "Fig. 19: Curriculum schedules as a function of progress $p$ . Left: goal curriculum (candidate subset, tolerances, required hold). Right: friction curriculum (sampled range per coefficient).",
+    "source_url": "https://arxiv.org/html/2610.37652v1/curric_combined_1row_linear.svg",
+    "path": "figures/figure-24-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F20",
+    "caption": "Fig. 20: Adaptive curriculum progress during A1 : goal (top) and friction (middle) curriculum progress, and the rolling goal success that drives them (bottom).",
+    "source_url": "https://arxiv.org/html/2610.37652v1/curric_progress_col_3row_v8.svg",
+    "path": "figures/figure-25-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F21",
+    "caption": "Fig. 21: Training curves of the four task stages (goals per episode). Hollow circles: deployed checkpoints.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/stages_col_2x2_cvd_clean_v8.svg",
+    "path": "figures/figure-28-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F22",
+    "caption": "Fig. 22: Outcome of every goal in the main real-robot experiment (96 runs, 4,800 goals). Each row of cells is one run of 50 goals. Dark blue: precise; light blue: coarse only; grey: not reached; orange: drop.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/raster_goal_outcomes_2x2_cvd_wgfix_v8.png",
+    "path": "figures/figure-30-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F23",
+    "caption": "Fig. 23: Goal diversity, knife, palm down. Goal poses of one run from the main (left) and wide (right) evaluation sets, marked reached (dot), not reached (open circle) or dropped (diamond).",
+    "source_url": "https://arxiv.org/html/2610.37652v1/triad_grasp4_knife_col_1x2_key.png",
+    "path": "figures/figure-31-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F24",
+    "caption": "Fig. 24: Goal success versus drop rate on the real robot , per object, from without (open) to with (filled) the safety filter, for the state (left) and depth (right) policies.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/tradeoff_2panel_nose_wgfix_v8.svg",
+    "path": "figures/figure-34-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F25",
+    "caption": "Fig. 25: More drops prevented by ResSafe. The same goal without (top) and with (bottom) the filter; the red line traces the fall path.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/grid2x2_bulb_duck_wgback_knife_wide.png",
+    "path": "figures/figure-35-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F26",
+    "caption": "Fig. 26: Object pose perceived by the depth policy. Error of its auxiliary pose head in simulation (blue) and on the real robot (orange); dashed lines are medians.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/aux_pose_hist_col_pooled_v8.svg",
+    "path": "figures/figure-36-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F27",
+    "caption": "Fig. 27: Curriculum ablation for A1 on all four objects (one seed). Curves are faded while a curriculum is still ramping; dots mark full difficulty.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/curric_curves_2x2_col_cvd.svg",
+    "path": "figures/figure-40-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F28",
+    "caption": "Fig. 28: ResSafe penalty ablation (rubber duck, 3 seeds): L2 penalty (ours), L1 penalty, and L2 without nominal-action noise. Labels give $w$ ; error bars: s.e.m. over seeds.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/ablation_duck_surv_v2_col_v8.svg",
+    "path": "figures/figure-41-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F29",
+    "caption": "Fig. 29: A1 needs privileged actor observations. Knife goals per episode with the privileged actor (ours) and with the student’s observations (3 seeds).",
+    "source_url": "https://arxiv.org/html/2610.37652v1/abl_actor_obs_goals_col_v8.svg",
+    "path": "figures/figure-42-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "Sx2.F30",
+    "caption": "Fig. 30: ResSafe B1 training (rubber duck, 3 seeds): unsafe-episode rate (left) and goals per 100 steps (right); mean with min–max band over seeds.",
+    "source_url": "https://arxiv.org/html/2610.37652v1/ressafe_duck_arms_col_v8.svg",
+    "path": "figures/figure-43-01.svg",
+    "status": "saved"
+  }
+]

@@ -1,0 +1,374 @@
+{
+  "prepared_at": "2026-10-30T05:24:33.456464+00:00",
+  "status": "ready_for_review",
+  "errors": [],
+  "source_format": "html",
+  "source_url": "https://arxiv.org/html/2610.40109v1",
+  "figures": [
+    {
+      "figure_id": "S1.F1",
+      "caption": "Figure 1 : Qualitative examples of image reconstructions for noiseless inpainting, deblurring, and super-resolution, comparing naive $\\Pi$ GDM , $\\Pi$ GDM + , and our coupled guidance method.",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/first_page.jpg",
+      "path": "figures/figure-01-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F2",
+      "caption": "Figure 2 : Experimental setups for robotics tasks. From left to right: Maniskill PickCube, Adroit Door, Hammer, Relocate, and Pen.",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Robotics_maniskill.jpg",
+      "path": "figures/figure-06-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F2",
+      "caption": "Figure 2 : Experimental setups for robotics tasks. From left to right: Maniskill PickCube, Adroit Door, Hammer, Relocate, and Pen.",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Robotics_door.jpeg",
+      "path": "figures/figure-06-02.jpeg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F2",
+      "caption": "Figure 2 : Experimental setups for robotics tasks. From left to right: Maniskill PickCube, Adroit Door, Hammer, Relocate, and Pen.",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Robotics_hammer.jpeg",
+      "path": "figures/figure-06-03.jpeg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F2",
+      "caption": "Figure 2 : Experimental setups for robotics tasks. From left to right: Maniskill PickCube, Adroit Door, Hammer, Relocate, and Pen.",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Robotics_relocate.jpeg",
+      "path": "figures/figure-06-04.jpeg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F2",
+      "caption": "Figure 2 : Experimental setups for robotics tasks. From left to right: Maniskill PickCube, Adroit Door, Hammer, Relocate, and Pen.",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Robotics_pen.jpeg",
+      "path": "figures/figure-06-05.jpeg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F3",
+      "caption": "Figure 3 : Performance of $\\Pi$ GDM on Adroit tasks given different sparsity cutoffs. Runs using coupled guidance are used directly without a unit guidance scale $s=1$ . The blue lines each represent the performance of naive guidance for different guidance scalings $s$ .",
+      "source_url": "https://arxiv.org/html/2610.40109v1/out_relocate_pigdm_sparsity.svg",
+      "path": "figures/figure-07-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F3",
+      "caption": "Figure 3 : Performance of $\\Pi$ GDM on Adroit tasks given different sparsity cutoffs. Runs using coupled guidance are used directly without a unit guidance scale $s=1$ . The blue lines each represent the performance of naive guidance for different guidance scalings $s$ .",
+      "source_url": "https://arxiv.org/html/2610.40109v1/out_pen_pigdm_sparsity.svg",
+      "path": "figures/figure-07-02.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F3",
+      "caption": "Figure 3 : Performance of $\\Pi$ GDM on Adroit tasks given different sparsity cutoffs. Runs using coupled guidance are used directly without a unit guidance scale $s=1$ . The blue lines each represent the performance of naive guidance for different guidance scalings $s$ .",
+      "source_url": "https://arxiv.org/html/2610.40109v1/out_pigdm_legend.svg",
+      "path": "figures/figure-07-03.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F4",
+      "caption": "Figure 4 : LPIPS scores for $\\Pi$ GDM , (first row) and $\\Pi$ GDM + (second row) on super-resolution",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_superresolution_lpips_score_heatmap.png",
+      "path": "figures/figure-08-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F4",
+      "caption": "Figure 4 : LPIPS scores for $\\Pi$ GDM , (first row) and $\\Pi$ GDM + (second row) on super-resolution",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_superresolution_lpips_score_heatmap.png",
+      "path": "figures/figure-08-02.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S5.F5",
+      "caption": "Figure 5 : Evolution of $\\partial\\widehat{x}_{1}/\\partial x_{t}$ ’s contribution to the guidance norm for the CelebA-HQ-256 superresolution task through the $\\Pi$ GDM inference process.",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_superresolution_dx1xt.png",
+      "path": "figures/figure-09-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F6",
+      "caption": "Figure 6 : Sparsity tests for all Adroit tasks using $\\Pi$ GDM + : the cutoff represents the proportion of guided coordinates. Different shades of blue represent different tunings of the guidance scale for the naive guidance runs ( $\\beta=1$ )",
+      "source_url": "https://arxiv.org/html/2610.40109v1/out_pigdm_plus_all_sparsity.svg",
+      "path": "figures/figure-10-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F6",
+      "caption": "Figure 6 : Sparsity tests for all Adroit tasks using $\\Pi$ GDM + : the cutoff represents the proportion of guided coordinates. Different shades of blue represent different tunings of the guidance scale for the naive guidance runs ( $\\beta=1$ )",
+      "source_url": "https://arxiv.org/html/2610.40109v1/x1.svg",
+      "path": "figures/figure-10-02.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F7",
+      "caption": "Figure 7 : Sparsity tests for all Adroit tasks using $\\Pi$ GDM : the cutoffs represent the proportion of guided coordinates. Different shades of blue represent different tunings of the guidance scale for the naive guidance runs ( $\\beta=1$ )",
+      "source_url": "https://arxiv.org/html/2610.40109v1/out_pigdm_all_sparsity.svg",
+      "path": "figures/figure-11-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F7",
+      "caption": "Figure 7 : Sparsity tests for all Adroit tasks using $\\Pi$ GDM : the cutoffs represent the proportion of guided coordinates. Different shades of blue represent different tunings of the guidance scale for the naive guidance runs ( $\\beta=1$ )",
+      "source_url": "https://arxiv.org/html/2610.40109v1/x1.svg",
+      "path": "figures/figure-11-02.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F8",
+      "caption": "Figure 8 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the LPIPS scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_deblurring_lpips_score_heatmap.png",
+      "path": "figures/figure-14-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F8",
+      "caption": "Figure 8 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the LPIPS scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/x2.png",
+      "path": "figures/figure-14-02.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F8",
+      "caption": "Figure 8 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the LPIPS scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_inpainting_lpips_score_heatmap.png",
+      "path": "figures/figure-14-03.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F8",
+      "caption": "Figure 8 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the LPIPS scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_deblurring_lpips_score_heatmap.png",
+      "path": "figures/figure-14-04.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F8",
+      "caption": "Figure 8 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the LPIPS scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/x3.png",
+      "path": "figures/figure-14-05.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F8",
+      "caption": "Figure 8 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the LPIPS scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_inpainting_lpips_score_heatmap.png",
+      "path": "figures/figure-14-06.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F9",
+      "caption": "Figure 9 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the PSNR scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_deblurring_psnr_score_heatmap.png",
+      "path": "figures/figure-15-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F9",
+      "caption": "Figure 9 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the PSNR scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_superresolution_psnr_score_heatmap.png",
+      "path": "figures/figure-15-02.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F9",
+      "caption": "Figure 9 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the PSNR scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_inpainting_psnr_score_heatmap.png",
+      "path": "figures/figure-15-03.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F9",
+      "caption": "Figure 9 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the PSNR scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_deblurring_psnr_score_heatmap.png",
+      "path": "figures/figure-15-04.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F9",
+      "caption": "Figure 9 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the PSNR scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_superresolution_psnr_score_heatmap.png",
+      "path": "figures/figure-15-05.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F9",
+      "caption": "Figure 9 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the PSNR scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_inpainting_psnr_score_heatmap.png",
+      "path": "figures/figure-15-06.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F10",
+      "caption": "Figure 10 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the SSIM scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_deblurring_ssim_score_heatmap.png",
+      "path": "figures/figure-16-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F10",
+      "caption": "Figure 10 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the SSIM scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_superresolution_ssim_score_heatmap.png",
+      "path": "figures/figure-16-02.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F10",
+      "caption": "Figure 10 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the SSIM scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_inpainting_ssim_score_heatmap.png",
+      "path": "figures/figure-16-03.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F10",
+      "caption": "Figure 10 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the SSIM scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_deblurring_ssim_score_heatmap.png",
+      "path": "figures/figure-16-04.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F10",
+      "caption": "Figure 10 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the SSIM scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_superresolution_ssim_score_heatmap.png",
+      "path": "figures/figure-16-05.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F10",
+      "caption": "Figure 10 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the SSIM scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_inpainting_ssim_score_heatmap.png",
+      "path": "figures/figure-16-06.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F11",
+      "caption": "Figure 11 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the FID scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_deblurring_fid_score_heatmap.png",
+      "path": "figures/figure-17-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F11",
+      "caption": "Figure 11 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the FID scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_superresolution_fid_score_heatmap.png",
+      "path": "figures/figure-17-02.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F11",
+      "caption": "Figure 11 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the FID scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM_inpainting_fid_score_heatmap.png",
+      "path": "figures/figure-17-03.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F11",
+      "caption": "Figure 11 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the FID scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_deblurring_fid_score_heatmap.png",
+      "path": "figures/figure-17-04.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F11",
+      "caption": "Figure 11 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the FID scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_superresolution_fid_score_heatmap.png",
+      "path": "figures/figure-17-05.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F11",
+      "caption": "Figure 11 : Sample fidelity using different tuning scales and $\\beta$ values for deblurring, superresolution and inpainting (left to right). First row shows the FID scores for $\\Pi$ GDM , second row shows the performance of $\\Pi$ GDM +",
+      "source_url": "https://arxiv.org/html/2610.40109v1/plots_PiGDM+_inpainting_fid_score_heatmap.png",
+      "path": "figures/figure-17-06.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F12",
+      "caption": "Figure 12 : $\\widehat{x}_{1}$ predictions using $\\Pi$ GDM for the first 10 steps of deblurring showing the convergence of the guided process for $\\beta\\in[1,0.75,0.5,0.25,0]$ (from top to bottom)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM_deblurring_x1f10.jpg",
+      "path": "figures/figure-18-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F13",
+      "caption": "Figure 13 : $\\widehat{x}_{1}$ predictions using $\\Pi$ GDM for the first 10 steps of inpainting showing the convergence of the guided process for $\\beta\\in[1,0.75,0.5,0.25,0]$ (from top to bottom)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM_inpainting_x1f10.jpg",
+      "path": "figures/figure-19-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F14",
+      "caption": "Figure 14 : $\\widehat{x}_{1}$ predictions using $\\Pi$ GDM for the first 10 steps of superresolution showing the convergence of the guided process for $\\beta\\in[1,0.75,0.5,0.25,0]$ (from top to bottom)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM_superresolution_x1f10.jpg",
+      "path": "figures/figure-20-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F15",
+      "caption": "Figure 15 : $\\widehat{x}_{1}$ predictions using $\\Pi$ GDM + for the first 10 steps of deblurring showing the convergence of the guided process for $\\beta\\in[1,0.75,0.5,0.25,0]$ (from top to bottom)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM+_deblurring_x1f10.jpg",
+      "path": "figures/figure-21-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F16",
+      "caption": "Figure 16 : $\\widehat{x}_{1}$ predictions using $\\Pi$ GDM + for the first 10 steps of inpainting showing the convergence of the guided process for $\\beta\\in[1,0.75,0.5,0.25,0]$ (from top to bottom)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM+_inpainting_x1f10.jpg",
+      "path": "figures/figure-22-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F17",
+      "caption": "Figure 17 : $\\widehat{x}_{1}$ predictions using $\\Pi$ GDM + for the first 10 steps of superresolution showing the convergence of the guided process for $\\beta\\in[1,0.75,0.5,0.25,0]$ (from top to bottom)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM+_superresolution_x1f10.jpg",
+      "path": "figures/figure-23-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F18",
+      "caption": "Figure 18 : Final samples for deblurring using $\\Pi$ GDM with $\\beta\\in[1,0.75,0.5,0.25,0]$ (from left to right)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM_deblurring_finals.jpg",
+      "path": "figures/figure-24-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F19",
+      "caption": "Figure 19 : Final samples for inpainting using $\\Pi$ GDM with $\\beta\\in[1,0.75,0.5,0.25,0]$ (from left to right)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM_inpainting_finals.jpg",
+      "path": "figures/figure-25-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F20",
+      "caption": "Figure 20 : Final samples for superresolution using $\\Pi$ GDM with $\\beta\\in[1,0.75,0.5,0.25,0]$ (from left to right)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM_superresolution_finals.jpg",
+      "path": "figures/figure-26-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F21",
+      "caption": "Figure 21 : Final samples for deblurring using $\\Pi$ GDM + with $\\beta\\in[1,0.75,0.5,0.25,0]$ (from left to right)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM+_deblurring_finals.jpg",
+      "path": "figures/figure-27-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F22",
+      "caption": "Figure 22 : Final samples for inpainting using $\\Pi$ GDM + with $\\beta\\in[1,0.75,0.5,0.25,0]$ (from left to right)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM+_inpainting_finals.jpg",
+      "path": "figures/figure-28-01.jpg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A3.F23",
+      "caption": "Figure 23 : Final samples for superresolution using $\\Pi$ GDM + with $\\beta\\in[1,0.75,0.5,0.25,0]$ (from left to right)",
+      "source_url": "https://arxiv.org/html/2610.40109v1/figures/Appendix_PiGDM+_superresolution_finals.jpg",
+      "path": "figures/figure-29-01.jpg",
+      "status": "saved"
+    }
+  ],
+  "figure_coverage": "HTML 中 figure 的 img/object 资源；不保证覆盖 PDF 全部图像"
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "figure_id": "S2.F1",
+    "caption": "Fig. 1: Overview of AcrossDEX 1.0. (a) Human pretraining and robot expert data support adaptation with human replay. (b) A shared Transformer processes images and motion history. Masks select human or robot finger fields. Each method, task, and hand uses a separately trained policy. (c) The robot policy predicts 60 commands, executes the first $K$ steps, and updates its history. Blue, green, and orange denote shared, human, and robot components. Gray fields are masked.",
+    "source_url": "https://arxiv.org/html/2610.40210v1/architecture.png",
+    "path": "figures/figure-01-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S4.F2",
+    "caption": "Fig. 2: Success rates for lid opening and return and object reorientation with two hand embodiments. Each configuration is post-trained separately and evaluated using ( 11 ).",
+    "source_url": "https://arxiv.org/html/2610.40210v1/task_success.svg",
+    "path": "figures/figure-02-01.svg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S4.F3",
+    "caption": "Fig. 3: A successful closed-loop opening and return trajectory with Inspire hands and Flow. The frontal views show the initial state, contact interaction, full opening, and the final state after lid return.",
+    "source_url": "https://arxiv.org/html/2610.40210v1/figures/opening_sequence.jpg",
+    "path": "figures/figure-03-01.jpg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S4.F4",
+    "caption": "Fig. 4: Successful closed-loop reorientation. Top: Inspire with BC. Bottom: Allegro with Flow. Columns correspond to $0$ , $0.22$ , $0.43$ , and $0.67\\,$ s.",
+    "source_url": "https://arxiv.org/html/2610.40210v1/figures/rotation_sequences.jpg",
+    "path": "figures/figure-04-01.jpg",
+    "status": "saved"
+  }
+]

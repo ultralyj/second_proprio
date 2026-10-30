@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "second-proprio"
+version = "0.2.0"
+description = "个人学术与生活技能仓库"
+requires-python = ">=3.11"
+dependencies = ["jsonschema>=4.23,<5", "beautifulsoup4>=4.12,<5", "httpx>=0.27,<1", "pypdf>=5,<7"]
+
+[project.scripts]
+second-proprio = "second_proprio.cli:main"
+
+[project.optional-dependencies]
+learning = ["torch>=2.5,<3", "numpy>=2,<3"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+    "pylint>=3.3,<4",
+    "yapf>=0.43,<1",
+    "PyYAML>=6,<7",
+    "pyinstaller>=6.16,<7",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/second_proprio"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.yapf]
+based_on_style = "google"
+column_limit = 80
+
+[tool.pylint.main]
+py-version = "3.11"
+
+[tool.pylint.format]
+max-line-length = 80
+
+[tool.pylint.messages_control]
+disable = ["too-few-public-methods", "duplicate-code", "too-many-arguments", "too-many-positional-arguments", "too-many-locals", "too-many-branches", "too-many-statements"]

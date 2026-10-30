@@ -1,0 +1,31 @@
+{
+  "id": "2610.40349",
+  "version": 1,
+  "version_verified": true,
+  "title": "TouchBridge: Tactile-Conditioned Human-to-Robot Transfer for Dexterous Manipulation",
+  "abstract": "Human demonstrations offer an efficient and scalable source of data for dexterous robot manipulation, but differences in sensing and hand morphology complicate the transfer of contact-rich interactions. We present TouchBridge, a hardware--software co-designed framework for human-to-robot data transformation. A wearable human demonstration interface and a corresponding robot interface establish cross-embodiment correspondence in visual and fingertip tactile sensing. We introduce Tac-Retarget, a tactile-conditioned retargeting method that uses measured contact to align fingertip contact patches and preserve their spatial relations within and across hands. Unlike object-aware or simulation-based transfer pipelines, Tac-Retarget requires no object mesh, object-pose estimate, or physics simulation for retargeting, enabling direct and scalable conversion of human demonstrations into robot-domain training data. Combined with visual synthesis and camera-anchored action conversion, TouchBridge produces robot-domain demonstrations for fine-tuning a pretrained vision-language-action (VLA) model. Across four real-world contact-rich tasks, policies fine-tuned solely on TouchBridge-converted human demonstrations achieve a 72.5% average success rate, compared with 77.5% using an equal number of teleoperated robot demonstrations, while human demonstration collection is 7.0x faster. Under the same policy and training setup, Tac-Retarget outperforms DexPilot and UniDex by 25.0 and 42.5 percentage points, respectively.",
+  "authors": [
+    "Haozhe Zhang",
+    "Gu Zhang",
+    "Zirui Zou",
+    "Yuzheng Chen",
+    "Jinlong Wu",
+    "Zixuan Hu",
+    "Jianke Zhang",
+    "Yucheng Hu",
+    "Zhecheng Yuan",
+    "Huazhe Xu"
+  ],
+  "url": "https://arxiv.org/abs/2610.40349v1",
+  "published": "2026-10-29T16:06:36Z",
+  "updated": "2026-10-29T16:06:36Z",
+  "categories": [
+    "cs.RO"
+  ],
+  "metadata_source": "entry",
+  "topic_id": "dexterous-manipulation",
+  "reason": "关键词初筛命中：dexterous",
+  "semantic_review": "pending",
+  "collected_at": "2026-10-30T05:20:51.858024+00:00",
+  "paper_dir": "papers/dexterous-manipulation/2610.40349/versions/v1"
+}

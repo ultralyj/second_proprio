@@ -1,0 +1,465 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "timezone": {
+      "type": "string",
+      "minLength": 1
+    },
+    "paths": {
+      "type": "object",
+      "properties": {
+        "papers": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*\\.\\.).+$"
+        },
+        "courses": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*\\.\\.).+$"
+        },
+        "private": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*\\.\\.).+$"
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*\\.\\.).+$"
+        }
+      },
+      "required": [
+        "papers",
+        "courses",
+        "private",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "scheduler": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "start_date": {
+          "type": "string",
+          "minLength": 1,
+          "format": "date"
+        },
+        "sync_interval_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400
+        },
+        "retry_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "enabled",
+        "start_date",
+        "sync_interval_seconds",
+        "retry_seconds",
+        "max_attempts"
+      ],
+      "additionalProperties": false
+    },
+    "schedules": {
+      "type": "object",
+      "properties": {
+        "papers": {
+          "type": "object",
+          "properties": {
+            "weekdays": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "times": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "weekdays",
+            "times"
+          ],
+          "additionalProperties": false
+        },
+        "course": {
+          "type": "object",
+          "properties": {
+            "weekdays": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "times": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "weekdays",
+            "times"
+          ],
+          "additionalProperties": false
+        },
+        "review": {
+          "type": "object",
+          "properties": {
+            "weekdays": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "times": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "weekdays",
+            "times"
+          ],
+          "additionalProperties": false
+        },
+        "care": {
+          "type": "object",
+          "properties": {
+            "weekdays": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "times": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "weekdays",
+            "times"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "papers",
+        "course",
+        "review",
+        "care"
+      ],
+      "additionalProperties": false
+    },
+    "server": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "ssh_host": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.@-]*$"
+        },
+        "root": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^/[A-Za-z0-9_./-]+$"
+        },
+        "connect_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "enabled",
+        "ssh_host",
+        "root",
+        "connect_timeout_seconds"
+      ],
+      "additionalProperties": false
+    },
+    "arxiv": {
+      "type": "object",
+      "properties": {
+        "lookback_days": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_papers_per_day": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "request_interval_seconds": {
+          "type": "number",
+          "minimum": 3
+        },
+        "topics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              },
+              "keywords": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              },
+              "exclude_keywords": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "categories",
+              "keywords",
+              "exclude_keywords"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "lookback_days",
+        "max_papers_per_day",
+        "request_interval_seconds",
+        "topics"
+      ],
+      "additionalProperties": false
+    },
+    "course": {
+      "type": "object",
+      "properties": {
+        "daily_new_lessons": {
+          "const": 1
+        },
+        "level": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "daily_new_lessons",
+        "level"
+      ],
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "properties": {
+        "source_directory": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*\\.\\.).+$"
+        }
+      },
+      "required": [
+        "source_directory"
+      ],
+      "additionalProperties": false
+    },
+    "relationship": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "anchor_date": {
+          "type": "string",
+          "minLength": 1,
+          "format": "date"
+        },
+        "anchor_days": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mood_min": {
+          "const": 1
+        },
+        "mood_max": {
+          "const": 5
+        },
+        "prompts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "name",
+        "anchor_date",
+        "anchor_days",
+        "mood_min",
+        "mood_max",
+        "prompts"
+      ],
+      "additionalProperties": false
+    },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "codex_command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 30,
+          "maximum": 7200
+        },
+        "notify": {
+          "type": "boolean"
+        },
+        "auto_run": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "codex_command",
+        "model",
+        "timeout_seconds",
+        "notify",
+        "auto_run"
+      ],
+      "additionalProperties": false
+    },
+    "desktop": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "appearance": {
+          "enum": [
+            "system",
+            "light",
+            "dark"
+          ]
+        },
+        "notifications": {
+          "enum": [
+            "content_and_action",
+            "action_only",
+            "all"
+          ]
+        },
+        "launch_at_login": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "required": [
+    "version",
+    "timezone",
+    "paths",
+    "scheduler",
+    "schedules",
+    "server",
+    "arxiv",
+    "course",
+    "review",
+    "relationship",
+    "runtime"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "second proprio configuration"
+}

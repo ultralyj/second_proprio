@@ -1,0 +1,26 @@
+{
+  "id": "2610.40109",
+  "version": 1,
+  "version_verified": true,
+  "title": "Coupled Guidance for Flow Matching",
+  "abstract": "Guidance methods are essential tools for steering the generation process in diffusion models, improving the generalizability of stochastic robotic controllers and enabling high-quality controlled image synthesis. Despite strong parallels between flow-matching and diffusion, integrating guidance into flow-matching models remains quite challenging. Recent work has proposed general guidance frameworks for flow-matching, however, they are direct adaptations of diffusion guidance methods and can prove unstable. In this work, we conduct a theoretical analysis of guidance in flow-matching and show that a naive translation of diffusion-based guidance to flow-matching breaks the coupling distribution used during training, resulting in weaker control over sampling accuracy. Building on this insight, we propose Coupled Guidance, a flow-matching-specific guidance mechanism derived from a geometric perspective that leverages the coupling structure inherent to flow-matching training. To validate the effectiveness of our approach, we conduct extensive experimentation on a custom robotic collision avoidance task using ManiSkill3, four robotic dexterous manipulation tasks from the Adroit benchmark, and three image generation tasks, namely inpainting, super-resolution, and deblurring, using the ImageNet-128 and CelebA-HQ-256 datasets. Our findings show that our framework improves sample quality and guidance stability across all tasks, without imposing any additional overhead.",
+  "authors": [
+    "Mateo Clémente",
+    "Léo Maxime Brunswic",
+    "Rui Heng Yang",
+    "Amir Rasouli"
+  ],
+  "url": "https://arxiv.org/abs/2610.40109v1",
+  "published": "2026-10-29T14:12:07Z",
+  "updated": "2026-10-29T14:12:07Z",
+  "categories": [
+    "cs.LG",
+    "cs.RO"
+  ],
+  "metadata_source": "entry",
+  "topic_id": "dexterous-manipulation",
+  "reason": "关键词初筛命中：dexterous",
+  "semantic_review": "pending",
+  "collected_at": "2026-10-30T05:20:51.858024+00:00",
+  "paper_dir": "papers/dexterous-manipulation/2610.40109/versions/v1"
+}

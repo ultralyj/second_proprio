@@ -1,0 +1,80 @@
+{
+  "prepared_at": "2026-10-30T05:21:31.522664+00:00",
+  "status": "ready_for_review",
+  "errors": [],
+  "source_format": "html",
+  "source_url": "https://arxiv.org/html/2610.40349v1",
+  "figures": [
+    {
+      "figure_id": "S2.F2",
+      "caption": "Fig. 2: Human–Robot Hardware Co-design. (a,b) Human demonstration and robot deployment interfaces.\n(c,d) Corresponding fingertip\ntactile-sensor placements and wrist-camera configurations reduce mismatch across embodiments.",
+      "source_url": "https://arxiv.org/html/2610.40349v1/human_robot_system_new.png",
+      "path": "figures/figure-02-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S3.F3",
+      "caption": "Fig. 3: Tac-Retarget .\n(a) Fingertip pose alignment tracks the demonstrated\nfingertip positions and orientations in the camera frame.\n(b) Contact alignment matches the patch center and active\ntaxels between the human and robot fingertips.\n(c) A tactile-activated contact graph preserves the\ndemonstrated spatial relations among active contacts\nwithin and across the two hands.\nWeighting terms and regularization are omitted for clarity.",
+      "source_url": "https://arxiv.org/html/2610.40349v1/tactile_retarget_new.png",
+      "path": "figures/figure-03-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S3.F4",
+      "caption": "Fig. 4: Human-to-robot data generation. From left to right: raw human demonstrations, removal masks, inpainted scenes, and synthesized robot-domain observations.",
+      "source_url": "https://arxiv.org/html/2610.40349v1/data_generation_new.png",
+      "path": "figures/figure-04-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S3.F5",
+      "caption": "Fig. 5: Four contact-rich tasks evaluated in our experiments.",
+      "source_url": "https://arxiv.org/html/2610.40349v1/task_new.png",
+      "path": "figures/figure-05-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S4.F6",
+      "caption": "Fig. 6: (a) Action replay success rates across four tasks,\nwith 20 converted human demonstrations replayed per task\nunder matched initial scene conditions.\n(b) Real-robot success rates of GR00T N1.7 [ 21 ] policies\nfine-tuned on 60 demonstrations per task from each data source.\n(c) Average collection time per successful demonstration,\nincluding failed attempts and scene resets.\nMultipliers indicate collection speedups. Error bars show standard deviation over the four tasks.",
+      "source_url": "https://arxiv.org/html/2610.40349v1/comparison_trigether.svg",
+      "path": "figures/figure-06-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S4.F7",
+      "caption": "Fig. 7: Observation comparison across data domains.\n(a) Multi-view observations from real-robot and human-derived data.\n(b) VLM feature distributions before the action expert.",
+      "source_url": "https://arxiv.org/html/2610.40349v1/feature_distribution.png",
+      "path": "figures/figure-07-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S4.F8",
+      "caption": "Fig. 8: Qualitative comparison of Tac-Retarget, its\nkinematic-only variant, and retargeting baselines.",
+      "source_url": "https://arxiv.org/html/2610.40349v1/retarget_vis_new.png",
+      "path": "figures/figure-08-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S4.F9",
+      "caption": "Fig. 9: Real-robot policy success rates comparing Tac-Retarget,\nits tactile ablations and existing retargeting methods. Error bars show standard deviation over the four tasks.",
+      "source_url": "https://arxiv.org/html/2610.40349v1/policy_success_rate.svg",
+      "path": "figures/figure-10-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S4.F10",
+      "caption": "Fig. 10: Real-robot policy success rates under different\npolicy and pretraining settings. Error bars show standard deviation over the four tasks.",
+      "source_url": "https://arxiv.org/html/2610.40349v1/policy_pretraining.svg",
+      "path": "figures/figure-11-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "Sx1.F11",
+      "caption": "Fig. 11: Reconstruction of camera-frame tactile\nfingertip poses. (a) Wrist-mounted AprilTag fiducial frames detected in the\negocentric image.\n(b) Manus fingertip positions (red) reconstructed using the\ncalibrated wrist-to-cube transforms.\n(c) Tactile-sensor origins (blue) obtained by applying the\nfixed sensor-to-fingertip mounting transform.\n(d) Close-up of the fixed spatial offsets between the Manus\nfingertips (red) and tactile-sensor origins (blue).",
+      "source_url": "https://arxiv.org/html/2610.40349v1/data_collection.png",
+      "path": "figures/figure-13-01.png",
+      "status": "saved"
+    }
+  ],
+  "figure_coverage": "HTML 中 figure 的 img/object 资源；不保证覆盖 PDF 全部图像"
+}

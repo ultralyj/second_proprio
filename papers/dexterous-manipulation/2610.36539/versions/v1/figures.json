@@ -1,0 +1,86 @@
+[
+  {
+    "figure_id": "S3.F2",
+    "caption": "Figure 2 : CARD overview. Video, glove, and motion capture are converted into a unified hand–contact representation, a MANO mesh with one contact force target per semantic link ( Sec. 3.1 ). Geometric initialization maps human joint angles to the robot skeleton, followed by contact-anchored retargeting that aligns the corresponding robot pads with the contact force targets ( Sec. 3.3 ). Joint and contact force targets are replayed by a tactile tracking controller ( Sec. 3.4 ) on hardware.",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_source_data.png",
+    "path": "figures/figure-01-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S3.F3",
+    "caption": "Figure 3 : Demonstration sources. We show some demonstration exmaples from monocular video (Vid-HACO contact), tactile glove (taxel pressure), and motion capture with the tactile glove (taxel pressure).",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_data_gallery_1col.png",
+    "path": "figures/figure-02-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S3.F4",
+    "caption": "Figure 4 : Contact-anchored vs. kinematic retargeting on two video clips. Per clip: the human source, CARD , DexPilot, AnyTeleop-K, AnyTeleop-P, and CARD ’s geometric initialization (init only), the columns of Tab. 1 . The scanned object is for visualization only, and orange spheres are the contact force target . Kinematic baselines reach the object but do not track the contact.",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_baselines_1col.png",
+    "path": "figures/figure-03-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S3.F5",
+    "caption": "Figure 5 : Tactile tracker. Each finger uses fingertip force feedback to track the desired contact force through an admittance loop whose curls form the joint offset $\\Delta q$ , while feedforward torque directly applies the target force through the joint impedance controller ( Appendix F ).",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_tracker_diagram.png",
+    "path": "figures/figure-04-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S3.F6",
+    "caption": "Figure 6 : Tactile tracker ablation. We show the same trajectories replayed with (top) and without (bottom) tactile tracking. Tactile tracking maintains the desired contact forces, enabling stable grasps and successful task execution.",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_tactile_ablation.png",
+    "path": "figures/figure-06-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S3.F7",
+    "caption": "Figure 7 : Replay on hardware. We show a series of snapshots of CARD trajectories replayed on the SHARPA Wave hand, Wuji Hand 2, and Unitree Dex3-1. The articulated Rubik’s cube and the bending deck of cards use the same pipeline as the rigid objects.",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_realworld.png",
+    "path": "figures/figure-07-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S3.F8",
+    "caption": "Figure 8 : Cross-embodiment transfer. Two GRAB demonstrations (rows) retargeted to SHARPA Wave, Wuji Hand 2, Unitree Dex3-1, and a parallel-jaw gripper (columns, after the human source). Only the semantic map changes. Orange spheres are the contact force targets.",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_crossemb_1col.png",
+    "path": "figures/figure-08-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "A1.F9",
+    "caption": "Figure 9 : Initializer vs. solution on six video clips (hanger, can, cup, cards, marker, bowl): the geometric initializer $q^{\\mathrm{init}}$ (left of each pair) seats the hand near the contact force target . The contact solve (right) closes the last millimeters. Orange spheres are the contact force target .",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_init_vs_shipped.png",
+    "path": "figures/figure-11-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "A4.F10",
+    "caption": "Figure 10 : Semantic maps. The human hand (left of each pair) and the robot it is mapped to, colored by semantic region: the same color marks a human region and the robot link that receives its contacts. Skin marks human regions the embodiment has no link for, and grey marks unmapped robot bodies. SHARPA Wave and Wuji Hand 2 take the 15 finger regions and the palm one-to-one, and SHARPA also the pinky base. The Unitree Dex3-1 folds middle, ring, and pinky onto its third finger, and the parallel-jaw gripper assigns the thumb to one jaw and the four fingers to the other.",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_semantic_map.png",
+    "path": "figures/figure-13-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "A4.F11",
+    "caption": "Figure 11 : Semantic regions. The 18 regions shared by every source and robot, three per finger, the palm, the upper palm, and the pinky base, each with its region center of pressure.",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_semantic_regions_callout.png",
+    "path": "figures/figure-14-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "A4.F12",
+    "caption": "Figure 12 : Pseudo-object for video. Left to right: the contact force target of every frame of a video clip, mapped into the wrist frame and accumulated (registered contact cloud); their convex hull, the pseudo-object that serves as the collision field; the MANO hand at the peak-contact frame grasping the translucent hull; and the input video at the same frame. The first three panels are drawn in the camera frame of that frame, so their orientation matches the video.",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_pseudoobject.png",
+    "path": "figures/figure-15-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "A6.F13",
+    "caption": "Figure 13 : Force tracking on the SHARPA Wave. (a) The index finger follows a $0$ – $4$ N periodic contact force target against a fixed object: the measured force reaches the peaks within a few tenths of a newton and lags the target by about $0.2$ s. The floor near $0.5$ N is the preload the state machine keeps while in contact. (b) A three-finger grasp with step targets during mustard bottle pick-up replay (thumb $9.7$ N, middle $7$ N, index $2.6$ N): the forces rise to their set-points within a second of the step, the thumb overshoots while the object settles, and release returns every finger to zero within about a second.",
+    "source_url": "https://arxiv.org/html/2610.36539v1/fig_tactile_tracker.svg",
+    "path": "figures/figure-19-01.svg",
+    "status": "saved"
+  }
+]

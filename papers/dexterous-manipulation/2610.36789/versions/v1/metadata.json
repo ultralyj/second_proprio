@@ -1,0 +1,27 @@
+{
+  "id": "2610.36789",
+  "version": 1,
+  "version_verified": true,
+  "title": "A fully articulated humanoid dexterous hand with human-level joint structure enabled by linkage-based actuation",
+  "abstract": "Humanoid dexterous hands are a core component of embodied intelligence, enabling robots to translate high-level intent into rich and adaptive physical interaction. However, existing designs remain constrained by a persistent trade-off among anthropomorphic kinematic complexity, mechanical robustness, load capacity and control simplicity, limiting dexterous manipulation in unstructured environments. Here we present Torch-Hand, a fully articulated humanoid dexterous hand that replicates the joint structure and motion hierarchy of the human hand with 21 degrees of freedom (DOF), comprising a highly articulated five-DOF thumb and four DOF in each of the remaining fingers. The differentiated thumb integrates multi-axis CMC motion to provide broad opposition and flexible contact orientation relative to the four fingers. Unlike tendon-driven or hybrid actuation approaches, Torch-Hand adopts an entirely linkage-based transmission architecture. By integrating screw-linkage actuation, the hand achieves high grasping force and substantial payload capacity while maintaining a compact anthropomorphic form. Its actuation architecture is optimized for control tractability, with all actuators integrated within the palm and arranged in a serial-robot-like configuration that establishes a direct correspondence between motor motion and joint kinematics. This architecture mechanically decouples functional DOF to reduce unintended inter-joint motion propagation, while allowing independently addressable DOF to be actively coordinated into coupled multi-joint motion patterns during complex manipulation. Comprehensive experiments assess reachable workspace, coordinated fingertip trajectories, thumb opposition, 33-grasp taxonomy coverage, grasping force, payload capacity and task-level manipulation. These results establish Torch-Hand as a robust hardware foundation for dexterous embodied manipulation.",
+  "authors": [
+    "Jihao Li",
+    "Jianguo Wang",
+    "Haotian Guo",
+    "Yanzhe Wang",
+    "Guodong Lu",
+    "Huixu Dong"
+  ],
+  "url": "https://arxiv.org/abs/2610.36789v1",
+  "published": "2026-10-27T07:53:51Z",
+  "updated": "2026-10-27T07:53:51Z",
+  "categories": [
+    "cs.RO"
+  ],
+  "metadata_source": "entry",
+  "topic_id": "dexterous-manipulation",
+  "reason": "关键词初筛命中：dexterous",
+  "semantic_review": "pending",
+  "collected_at": "2026-10-29T09:22:12.709212+00:00",
+  "paper_dir": "papers/dexterous-manipulation/2610.36789/versions/v1"
+}

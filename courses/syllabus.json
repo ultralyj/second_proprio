@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "title": "从模仿学习到强化学习：灵巧操作课程",
+  "audience": "已有 IL/RL 基础，希望连接直觉、公式与代码",
+  "lessons": [
+    {"id": "01-shared-model", "title": "统一建模：策略如何改变未来数据", "path": "lessons/01-shared-model.md", "example": "examples/shared_model.py", "status": "generated", "generated_on": "2026-10-29", "bootstrap": true},
+    {"id": "02-bc-shift", "title": "行为克隆：低监督误差为何不等于可靠控制", "path": "lessons/02-bc-shift.md", "example": "examples/bc_shift.py", "status": "generated", "generated_on": "2026-10-29", "bootstrap": true},
+    {"id": "03-dagger", "title": "DAgger：让专家标注学习者真正遇到的状态", "path": "lessons/03-dagger.md", "example": "examples/dagger.py", "status": "generated", "generated_on": "2026-10-29", "bootstrap": true},
+    {"id": "04-returns-values", "title": "回报、价值与 Bellman 递推", "path": "lessons/04-returns-values.md", "example": "examples/returns_values.py", "status": "generated", "generated_on": "2026-10-30"},
+    {"id": "05-value-learning", "title": "从 TD 到 Q-learning：目标值与自举", "path": "lessons/05-value-learning.md", "example": "examples/value_learning.py", "status": "planned"},
+    {"id": "06-policy-gradient", "title": "策略梯度：概率、回报与基线", "path": "lessons/06-policy-gradient.md", "example": "examples/policy_gradient.py", "status": "planned"},
+    {"id": "07-actor-critic", "title": "Actor–Critic 与优势估计", "path": "lessons/07-actor-critic.md", "example": "examples/actor_critic.py", "status": "planned"},
+    {"id": "08-ppo", "title": "PPO：限制一次策略更新的幅度", "path": "lessons/08-ppo.md", "example": "examples/ppo.py", "status": "planned"},
+    {"id": "09-sac", "title": "SAC：熵、双 Q 与连续动作", "path": "lessons/09-sac.md", "example": "examples/sac.py", "status": "planned"},
+    {"id": "10-offline-learning", "title": "离线学习：数据覆盖与分布外动作", "path": "lessons/10-offline-learning.md", "example": "examples/offline_learning.py", "status": "planned"},
+    {"id": "11-robot-observations", "title": "视觉、触觉、历史与动作接口", "path": "lessons/11-robot-observations.md", "example": "examples/robot_observations.py", "status": "planned"},
+    {"id": "12-action-chunks", "title": "动作分块与序列策略", "path": "lessons/12-action-chunks.md", "example": "examples/action_chunks.py", "status": "planned"},
+    {"id": "13-diffusion-policy", "title": "扩散动作策略：多峰动作的迭代生成", "path": "lessons/13-diffusion-policy.md", "example": "examples/diffusion_policy.py", "status": "planned"},
+    {"id": "14-flow-policy", "title": "Flow Matching：用速度场生成动作", "path": "lessons/14-flow-policy.md", "example": "examples/flow_policy.py", "status": "planned"},
+    {"id": "15-sim-to-real", "title": "仿真到真实：随机化、接触与评估", "path": "lessons/15-sim-to-real.md", "example": "examples/sim_to_real.py", "status": "planned"},
+    {"id": "16-development-map", "title": "发展路径：从 BC、RL 到具身基础模型", "path": "lessons/16-development-map.md", "example": "examples/development_map.py", "status": "planned"}
+  ]
+}
