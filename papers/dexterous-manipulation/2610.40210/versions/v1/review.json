@@ -1,5 +1,28 @@
 {
   "status": "done",
   "reviewed_at": "2026-10-30T13:20:51.851745+08:00",
-  "summary": "全文确认高度相关，已用同版本 PDF、TeX 核验公式与数值，完成中文解读、逐符号公式、Mermaid 和四张原图链接检查；明确标注仿真范围、选优偏差与复现局限。"
+  "summary": "全文确认高度相关，已用同版本 PDF、TeX 核验公式与数值，完成中文解读、逐符号公式、Mermaid 和四张原图链接检查；明确标注仿真范围、选优偏差与复现局限。",
+  "reading_layout": {
+    "version": "1.1",
+    "affiliation_evidence": "source.html .ltx_authors和source.txt署名区只列姓名与通讯作者邮箱，未见机构；不据邮箱或姓名推断。",
+    "abstract_source": "metadata.json abstract，与本地全文摘要核对",
+    "source_files": {
+      "metadata.json": "566b78a3a38b39cd14275971fb57b98f4927c8001c0bd5f086cfa258c35482a5",
+      "source.html": "533202effd89ead8bcba1eb8dfec4ca008c504890b0b8a5189a67f0e3cb34cf7",
+      "source.txt": "364f89b8142b1a1d31c00e4b6a0b0e38ad3c3750933d4931b6d9cf7b0bce96f2"
+    },
+    "previous_source_and_audit": {
+      "frontmatter": "# AcrossDEX 1.0：人类运动预训练如何接到双手灵巧操作\n\n",
+      "sections": [
+        [
+          "原文信息与相关性",
+          "| 项目 | 信息 |\n| --- | --- |\n| 标题 | AcrossDEX 1.0: From Human Motion Pretraining to Bimanual Dexterous Manipulation across Hand Embodiments |\n| 作者 | Xiaoyu Yang、Nan Wu |\n| arXiv | 2610.40210，v1；分类 cs.RO |\n| 提交／更新时间 | 元数据均为 2026-10-29 14:56:30 UTC，即 Asia/Shanghai 的 2026-10-29 22:56:30；这不是另行核实过的公告时间 |\n| 原文 | [摘要页](https://arxiv.org/abs/2610.40210v1)、[HTML 全文](https://arxiv.org/html/2610.40210v1)、[PDF](https://arxiv.org/pdf/2610.40210v1)、[TeX 源码包](https://arxiv.org/src/2610.40210v1) |\n| 解读日期 | 2026-10-30，Asia/Shanghai |\n| 本地依据 | [全文文本](source.txt)、[HTML](source.html)、[元数据](metadata.json)、[准备记录](preparation.json)、[图片清单](figures.json) |\n\n**相关性结论：与「灵巧手与操作」高度相关。** 正文研究两只多指手在接触动力学下共同开盖、回盖和转动物体，明确处理手腕运动、手指控制空间、专家示范与视觉闭环策略；实验对象包含六通道 Inspire 和十六关节 Allegro。相关性来自 §II–IV 的方法与任务，而非标题中的 dexterous 关键词。\n\n本解读已阅读全文，并以同版本 8 页 PDF 和 `main.tex` 核对式 (1)–(11)、训练规模、阈值和成功率。TeX 只作为文本读取。当前目录仅有 v1，没有本地旧版可比较。论文的机器人实验**全部是 Genesis 物理仿真**：浮动手腕、单个箱体资产、分任务分手型训练，且推理时暂停仿真。以下「部署」均指文中仿真闭环执行，不代表已经完成实机部署。"
+        ],
+        [
+          "来源与定位索引",
+          "本地 HTML、文本、图像作为主体来源；2026-10-30 取得的同版本 PDF 和 TeX 作为交叉核验来源。下面列出可直接复核的位置，页码以 8 页 PDF 为准。\n\n| 要核验的内容 | 章节／公式／原图 | PDF 页码与 HTML 锚点 |\n| --- | --- | --- |\n| 问题及既有方法来源 | §I | 第 1–2 页；[引言](https://arxiv.org/html/2610.40210v1#S1) |\n| 策略接口、坐标系、相对运动 | §II-A/B，式 (1)–(3) | 第 2 页；[方法](https://arxiv.org/html/2610.40210v1#S2) |\n| 模型目标与 BMC | §II-C，式 (4)–(6) | 第 3–4 页；[共享骨干](https://arxiv.org/html/2610.40210v1#S2.SS3) |\n| 专家、命令标签与跨本体字段 | §II-D/E，式 (7)–(8) | 第 4 页；[专家](https://arxiv.org/html/2610.40210v1#S2.SS4)、[适配](https://arxiv.org/html/2610.40210v1#S2.SS5) |\n| RTC 与同步暂停仿真 | §II-F，式 (9) | 第 5 页；[闭环执行](https://arxiv.org/html/2610.40210v1#S2.SS6) |\n| 数据、训练、评价和选优 | §III-A/B/C，式 (10)–(11) | 第 5–6 页；[实验设置](https://arxiv.org/html/2610.40210v1#S3) |\n| 主结果与独立 RTC 配对结果 | §IV-A/B/C，图 2–4 | 第 6–7 页；[实验结果](https://arxiv.org/html/2610.40210v1#S4) |\n| 作者结论与后续方向 | §V | 第 7–8 页；[结论](https://arxiv.org/html/2610.40210v1#S5) |\n\n原文无编号实验表，本解读中的表格是按正文整理。TeX 对应公式标签依次为 `eq:policy`、`eq:camera`、`eq:relative`、`eq:diffusion`、`eq:flow`、`eq:humanloss`、`eq:interface`、`eq:adaptation`、`eq:rtc`、`eq:geodesic`、`eq:success`；没有执行 TeX 或其包含的任何命令。"
+        ]
+      ]
+    }
+  }
 }

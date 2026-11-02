@@ -251,7 +251,11 @@ def _dispatch(args: argparse.Namespace) -> object:  # pylint: disable=too-many-r
                 for task in store.export_tasks():
                     day = dt.datetime.fromisoformat(
                         task["scheduled_at"]).astimezone(now.tzinfo).date()
-                    if task["kind"] == "review" and day in affected:
+                    if (task["kind"] == "review" and day in affected and
+                            task["status"] not in {
+                                "cancelled", "cancel_requested",
+                                "waiting_review", "running"
+                            }):
                         store.finish(task["id"], "pending")
                 return {"imported": str(path), "review": "相关复盘将在下一轮处理"}
             sync_result = None
@@ -274,7 +278,7 @@ def _dispatch(args: argparse.Namespace) -> object:  # pylint: disable=too-many-r
                     for task in store.export_tasks():
                         if task["kind"] == args.kind and task[
                                 "status"] == "failed":
-                            store.finish(task["id"], "pending")
+                            store.retry(task["id"])
                 if args.kind in {"care", "review"}:
                     store.finish(identifier, "pending")
             results = []

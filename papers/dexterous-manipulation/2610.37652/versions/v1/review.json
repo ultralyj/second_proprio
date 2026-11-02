@@ -13,5 +13,25 @@
     "未运行作者训练代码",
     "未独立复现实机指标",
     "未核查项目页代码发布状态"
-  ]
+  ],
+  "reading_layout": {
+    "version": "1.1",
+    "affiliation_evidence": "本地 paper.pdf 第1页作者1/2上标及页脚单位；source.html .ltx_authors逐作者标注一致。",
+    "abstract_source": "metadata.json abstract，与本地全文摘要核对",
+    "source_files": {
+      "metadata.json": "907f2dc9e6bb0d3dbbad1be785fbf6d559961bef8d526d5eb900935a81e1c13f",
+      "source.html": "43ca7b7c647c53dd2a2f0a5737f460173802d9dc4da213a5c7d3d80509421532",
+      "source.txt": "b252c04fce3406380bd3607c90e094fa734de5b5488c04f3ea71a58ebd6038f9",
+      "paper.pdf": "c37d05fea6317fb6b9861ac21d5e4ac91a8f25d78482b5d013790390d516a24e"
+    },
+    "previous_source_and_audit": {
+      "frontmatter": "# 在手内“挪到目标位置”，同时尽量不掉：灵巧手位姿控制与安全过滤\n\n> 真实首篇验收；不是虚构示例，也不是独立复现。检索、阅读日期：2026-10-29（Asia/Shanghai）。\n\n**原文**：Pushing Dexterity and Safety for In-Hand Object Pose Reaching That Works Remarkably Well，Ian Chuang、Hiya Shah、Vamsi Chilamkur、Iman Soltani、Claire Tomlin。arXiv **2610.37652v1**，2026-10-27，`cs.RO / cs.LG / eess.SY`。[摘要与版本](https://arxiv.org/abs/2610.37652v1) · [全文](https://arxiv.org/html/2610.37652v1) · [作者项目页](https://ian-chuang.github.io/dexsafe/)。\n\n**为什么入选**：核心对象是多指灵巧手，核心任务是接触丰富的在手操作；方法直接连接强化学习、DAgger 模仿学习、sim-to-real 与安全控制。它讨论的是手指如何移动物体并避免掉落，不是仅包含“dexterous”关键词的外围工作。\n\n",
+      "sections": [
+        [
+          "8. 本地原文与插图",
+          "本目录保留 [HTML 原文](source.html)、[公式与正文提取](source.txt)、[原始 PDF](paper.pdf)、[元数据](metadata.json)、[全部30张原图](figures.md)、[原图清单](figures.json) 和 [准备记录](preparation.json)。原图按来源保存在 `figures/`，图号以清单中的 `figure_id` 和图注为准，不用文件名序号推断原图号。\n\n本篇已保留 Fig. 1–30：HTML 的29张原始图片/图表，加上从PDF第1页补齐的图1；14张数据表仍保留在原始HTML/PDF内。关键式(8)及权重方向已经与PDF第7页视觉核对。一般论文的HTML转换仍可能省图或排版出错，不能把本篇覆盖率推广为全自动保证。上述数值及公式均定位于原文相应章节；本解读没有运行作者训练代码，也未核验作者项目页所链接仓库的发布状态。"
+        ]
+      ]
+    }
+  }
 }

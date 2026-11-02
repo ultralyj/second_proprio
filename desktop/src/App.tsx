@@ -1,3 +1,4 @@
+/** 应用壳负责导航、后台连接状态及外观设置，业务编辑交给各页面。 */
 import { useCallback, useEffect, useState } from "react";
 import {
   Sun,
@@ -131,7 +132,7 @@ export default function App() {
           </span>
           <div>
             <strong>second proprio</strong>
-            <small>个人工作台</small>
+            <small>第二本我@LYJ</small>
           </div>
         </div>
         <nav aria-label="主导航">
@@ -180,7 +181,7 @@ export default function App() {
                 : active
                   ? "后台正在工作"
                   : status?.paused
-                    ? "AI 任务已暂停"
+                    ? "沉淀已暂停"
                     : "后台已就绪"}
             </span>
             <button

@@ -25,7 +25,15 @@ def _emit(stage: str, message: str) -> None:
 
 
 def main(spec_path: Path) -> None:
-    """读取可信任务快照，运行并写入可恢复结果。"""
+    """在子进程内执行任务快照，结果等待父服务验收发布。
+
+    Args:
+        spec_path: 父服务写入的可信 JSON 快照路径；不是论文或聊天输入。
+
+    Raises:
+        OSError: 无法读取快照或持久化结果。
+        ValueError: 快照不是有效 JSON。
+    """
     spec = json.loads(spec_path.read_text("utf-8"))
     root = Path(spec["workspace"])
     config = spec["config"]
@@ -35,6 +43,7 @@ def main(spec_path: Path) -> None:
     os.environ["SECOND_PROPRIO_CODEX_PID_FILE"] = str(marker)
 
     def stop(_signum: int, _frame: object) -> None:
+        """收到停止信号时通知模型进程组退出，再终止工作进程。"""
         if marker.exists():
             try:
                 os.killpg(json.loads(marker.read_text())["pid"], signal.SIGTERM)
@@ -43,6 +52,7 @@ def main(spec_path: Path) -> None:
         raise SystemExit(143)
 
     def watch_parent() -> None:
+        """父服务消失后退出，避免脱离队列管理的模型进程继续运行。"""
         while True:
             time.sleep(2)
             if os.getppid() != parent:

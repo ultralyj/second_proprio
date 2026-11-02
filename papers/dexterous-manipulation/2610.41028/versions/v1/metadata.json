@@ -1,0 +1,29 @@
+{
+  "id": "2610.41028",
+  "version": 1,
+  "version_verified": true,
+  "title": "Contact Imitation Interface: Transferring Dexterous Skills by Showing How Contact Unfolds",
+  "abstract": "Robot-free human demonstrations offer a promising route to scaling dexterous manipulation data. The key challenge is to preserve the demonstrator's natural dexterity while producing contact-grounded observations and actions that transfer to robot hands. We present Contact Imitation Interface (CIMI), a framework with contact-grounded demonstration and learning interfaces. The demonstration interface combines shared contact geometry and fingertip RGB views with contact-alignment-first retargeting and reprojection of wider scene views. The learning interface introduces a hierarchical policy in which a contact-surface planner predicts relative contact-surface trajectories and a controller coordinates wrist and finger commands to improve contact alignment. CIMI combines contact-grounded observations, retargeting, and action representations, improving mean final-stage success by at least 50 percentage points over baseline policies across six hand-task pairs on LEAP and Wuji. Hardware designs and software are publicly available.",
+  "authors": [
+    "Zhixuan Xu",
+    "Yichen Li",
+    "Bingchen Wu",
+    "Rui Wang",
+    "Yiwen Hou",
+    "Zixuan Liu",
+    "Tianyu Qiu",
+    "Lin Shao"
+  ],
+  "url": "https://arxiv.org/abs/2610.41028v1",
+  "published": "2026-10-29T22:14:31Z",
+  "updated": "2026-10-29T22:14:31Z",
+  "categories": [
+    "cs.RO"
+  ],
+  "metadata_source": "entry",
+  "topic_id": "dexterous-manipulation",
+  "reason": "关键词初筛命中：dexterous、robot hand",
+  "semantic_review": "pending",
+  "collected_at": "2026-11-02T05:01:30.404090+00:00",
+  "paper_dir": "papers/dexterous-manipulation/2610.41028/versions/v1"
+}

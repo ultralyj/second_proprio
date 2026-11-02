@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 from second_proprio import config as configuration
 from second_proprio import course
 from second_proprio import personal
+from second_proprio import review_sources
 from second_proprio.documents import DocumentStore
 
 
@@ -88,10 +89,16 @@ def list_content(root: Path, config: dict, kind: str, query: str = "") -> dict:
         items = _lessons(root, config)
     elif kind in {"papers", "paper"}:
         directory = configuration.resolve_path(root, config["paths"]["papers"])
+        ratings = _load(
+            configuration.resolve_path(root, config["paths"]["private"]) /
+            "paper-ratings.json", {})
         for metadata in directory.glob("*/**/metadata.json"):
             data = _load(metadata, {})
             review = _load(metadata.parent / "review.json", {})
             path = metadata.parent / "README.md"
+            pdf = next((metadata.parent / name
+                        for name in ("source.pdf", "paper.pdf")
+                        if (metadata.parent / name).is_file()), None)
             items.append({
                 "path":
                     str(path.relative_to(root)),
@@ -107,6 +114,8 @@ def list_content(root: Path, config: dict, kind: str, query: str = "") -> dict:
                     data.get("topic_id", ""),
                 "arxiv_id":
                     data.get("id", ""),
+                "rating":
+                    ratings.get(data.get("id", ""), {}).get("score"),
                 "version":
                     data.get("version", 1),
                 "url":
@@ -114,7 +123,7 @@ def list_content(root: Path, config: dict, kind: str, query: str = "") -> dict:
                 "reason":
                     data.get("reason", ""),
                 "pdf_path":
-                    str((metadata.parent / "paper.pdf").relative_to(root)),
+                    str(pdf.relative_to(root)) if pdf else None,
                 "note_path":
                     str(
                         Path(config["paths"]["private"]) / "paper-notes" /
@@ -214,6 +223,43 @@ def read_content(root: Path, config: dict, relative: str) -> dict:
     return result
 
 
+def save_paper_rating(root: Path, config: dict, params: dict) -> dict:
+    """保存用户对论文的评分，同一 arXiv ID 的不同版本共享评分。
+
+    Args:
+        root: 项目根目录。
+        config: 业务配置。
+        params: 包含 arxiv_id 和 1–5 分 score，空值表示清除。
+
+    Returns:
+        论文 ID 和保存后的评分。
+
+    Raises:
+        ValueError: 分数非法或论文不在当前资料库中。
+    """
+    identifier = params.get("arxiv_id")
+    score = params.get("score")
+    if score is not None and (type(score) is not int or not 1 <= score <= 5):  # pylint: disable=unidiomatic-typecheck
+        raise ValueError("论文评分必须为 1–5 整数或未评分")
+    directory = configuration.resolve_path(root, config["paths"]["papers"])
+    if not isinstance(identifier, str) or not identifier or not any(
+            _load(path, {}).get("id") == identifier
+            for path in directory.glob("*/**/metadata.json")):
+        raise ValueError("未找到这篇论文")
+    path = configuration.resolve_path(
+        root, config["paths"]["private"]) / ("paper-ratings.json")
+    ratings = _load(path, {})
+    if score is None:
+        ratings.pop(identifier, None)
+    else:
+        ratings[identifier] = {
+            "score": score,
+            "updated_at": dt.datetime.now(dt.timezone.utc).isoformat()
+        }
+    configuration.atomic_json(path, ratings)
+    return {"arxiv_id": identifier, "rating": score}
+
+
 def relationship(root: Path, config: dict, date: str | None = None) -> dict:
     """读取单日关心记录及可用历史日期。"""
     day = _day(config, date)
@@ -296,9 +342,8 @@ def add_review_source(root: Path, config: dict, params: dict) -> dict:
         raise ValueError("请填写当天记录")
     identifier = uuid.uuid4().hex
     stamp = dt.datetime.combine(day, dt.time(12), ZoneInfo(config["timezone"]))
-    path = configuration.resolve_path(
-        root,
-        config["review"]["source_directory"]) / f"manual-{identifier}.json"
+    path = review_sources.import_directory(root,
+                                           config) / f"manual-{identifier}.json"
     configuration.atomic_json(
         path, {
             "source":
@@ -322,6 +367,8 @@ def dispatch(root: Path, config: dict, method: str, params: dict) -> dict:  # py
                             params.get("query", ""))
     if method == "content.read":
         return read_content(root, config, params["path"])
+    if method == "content.rate":
+        return save_paper_rating(root, config, params)
     if method == "content.save":
         return store.save(params["path"], params["content"],
                           params.get("base_hash"))

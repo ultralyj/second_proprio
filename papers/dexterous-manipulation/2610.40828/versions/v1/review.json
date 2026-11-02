@@ -1,0 +1,178 @@
+{
+  "status": "done",
+  "reviewed_at": "2026-11-02T13:01:29.859250+08:00",
+  "timezone": "Asia/Shanghai",
+  "paper_id": "2610.40828",
+  "version": 1,
+  "semantic_review": "accepted",
+  "reason": "已读正文与附录：研究五指 Tesollo 灵巧手对 RJ45 连接器的真实抓取、拔出和插入，比较视觉/点云模仿学习的观测与动作表示，并检验离线指标能否预测接触操作成功率。研究对象、任务和方法均直接对应“灵巧手与操作”，不只是标题关键词命中。",
+  "sources": [
+    {
+      "kind": "metadata",
+      "path": "metadata.json",
+      "url": "https://arxiv.org/abs/2610.40828v1",
+      "sha256": "a6c77e30572a3fae627371840f560474ccfb387b8ec3aa9a7db95cf155d5e357"
+    },
+    {
+      "kind": "full_text_html",
+      "path": "source.html",
+      "url": "https://arxiv.org/html/2610.40828v1",
+      "sha256": "61e792103fcaaa603b7563101a4ab667077a1ae625ae42722a15593a57c910df"
+    },
+    {
+      "kind": "full_text_extraction",
+      "path": "source.txt",
+      "sha256": "51c9c8e057eec2800b8983917d9164a595b5b06de504be77c4e300f17afc2c57"
+    },
+    {
+      "kind": "official_pdf",
+      "url": "https://arxiv.org/pdf/2610.40828v1",
+      "sha256": "f22f952a88f6d6e10fe235ee75954a3fe7f768d5e9186d34f5309486a15006f2",
+      "pages": 12,
+      "verification": "下载官方 PDF，提取全文并渲染核对第 1、3、4、9 页；首页边栏标识 2610.40828v1、29 Oct 2026。临时文件未加入版本目录。"
+    }
+  ],
+  "affiliation_evidence": {
+    "association_verified": true,
+    "source_url": "https://arxiv.org/pdf/2610.40828v1",
+    "locator": "PDF 第 1 页标题下完整署名区及共同贡献脚注，已视觉核验",
+    "authors": [
+      "Ammar N. Abbas",
+      "Aayush Jain",
+      "Prashanth Viswanath",
+      "Nivesh Gadipudi",
+      "Giulia Vilone",
+      "Jim Gibbons"
+    ],
+    "affiliation": "Analog Devices, Inc., EdgeAI Robotics, Limerick, Ireland",
+    "mapping": "六位作者分两行列出，紧随其后为共同单位一行；没有不同单位的编号标注。",
+    "equal_contribution": [
+      "Ammar N. Abbas",
+      "Aayush Jain"
+    ],
+    "html_issue_resolved": "HTML 将后面三位作者误放入第一位作者的 affiliation、共同单位放在第二位作者下面；本次以 PDF 完整署名布局核实，未按邮箱或姓名推断。"
+  },
+  "coverage": {
+    "full_text_read": true,
+    "sections": [
+      "摘要",
+      "§1 Introduction",
+      "§2 System and Protocol",
+      "§3 Ablation Results",
+      "§4 Offline Metrics",
+      "§5 Conclusion",
+      "附录 A–F"
+    ],
+    "tables_checked": [
+      "表 1 最佳配置与汇总口径",
+      "表 2 数据集计数",
+      "表 3 鲁棒性与脚注",
+      "表 4 模型与训练设置",
+      "表 5 消融设置",
+      "表 6 指标分组"
+    ],
+    "pdf_cross_checks": [
+      "第 1 页署名与摘要",
+      "第 2、7 页动作维度和评分公式",
+      "第 3 页图 2a 与消融数字",
+      "第 4 页表 1 与离线相关结果",
+      "第 8 页表 2 与点云处理",
+      "第 9 页表 3、阈值和样本口径",
+      "第 10 页表 4–5",
+      "第 11–12 页图 4、表 6 及统计筛选规则"
+    ],
+    "figures_embedded": [
+      "figures/figure-01-01.png",
+      "figures/figure-05-01.svg",
+      "figures/figure-02-01.svg",
+      "figures/figure-02-02.png",
+      "figures/figure-09-01.svg"
+    ],
+    "figures_visually_inspected": [
+      "figures/figure-01-01.png",
+      "figures/figure-02-02.png",
+      "PDF 第 3 页图 2a/2b"
+    ],
+    "version_comparison": "仅有本次指定 v1，无旧版解读需要比较。"
+  },
+  "evidence": [
+    {
+      "claim": "281 个策略、七个策略族、约 1700 次真机试验",
+      "locator": "PDF 第 1 页摘要；HTML #abstract1"
+    },
+    {
+      "claim": "四阶段编排、10/13 维动作、30 Hz 采集与 10 Hz 执行、grip effort 阈值",
+      "locator": "PDF 第 2、7 页；§2、附录 A；HTML #S2、#A1"
+    },
+    {
+      "claim": "ROI 0→100% 拔出、基座坐标 20→100% 拔出、逐层 LayerNorm 0→70% 管线插入；VLA 绝对动作 30→100%（6D）、89→100%（Euler）",
+      "locator": "PDF 第 3 页图 2a 与 §3；HTML #S3.F2、#S3.p1"
+    },
+    {
+      "claim": "ROI/坐标系/LayerNorm 的作用机制是解读判断；多视角和技能分解收益不可单独归因",
+      "locator": "§3 Paired comparisons、附录 B/D/E；PDF 第 3、8–10 页"
+    },
+    {
+      "claim": "同批试验 Pick=(I+P)/n、Insert|pick=I/(I+P)、Insert=I/n",
+      "locator": "§2 Scoring、附录 A Outcome stages；PDF 第 2、7 页；无公式编号"
+    },
+    {
+      "claim": "最佳配对成功率与技能检查点汇总率不同；ACT 100% 条件插入仅三次 pick；双视角 DP 抓取来自 VLA",
+      "locator": "表 1 标题与脚注、附录 C；PDF 第 4、8–9 页"
+    },
+    {
+      "claim": "67 项指标；21 个双夹具 iDP3 插入检查点的五项 r 为 -0.80/-0.79/-0.76/-0.71/-0.70",
+      "locator": "图 2b、§4、附录 F；PDF 第 3–4、11–12 页；本地 figure-02-02.png"
+    },
+    {
+      "claim": "至少十个检查点、矩阵内 BH q=0.05、移除任一策略符号不变；按 episode 加权",
+      "locator": "附录 F Scopes and correlation；PDF 第 11–12 页；HTML #A6.p3"
+    },
+    {
+      "claim": "验证损失 r=+0.08、p=0.72；VLA 没有验证切分",
+      "locator": "附录 F Loss curves 与图 4 图注；PDF 第 11–12 页"
+    },
+    {
+      "claim": "组合环境扰动中心组 3/5，重调起点后 4/5；阳光与紧公差使用替代检查点",
+      "locator": "表 3 及 †、‡ 脚注；PDF 第 9 页，已视觉核验"
+    }
+  ],
+  "formula_review": {
+    "original_numbered_equations": false,
+    "verified_original_formulas": "§2 和附录 A 中三个无编号成功率公式已与 PDF 核对。n=F+G+P+I 是互斥终止类别定义的直接展开；同批试验乘法关系为代数推论。",
+    "teaching_notation": [
+      "附录 B 的坐标转换、ROI 与 FPS 数据流写成教学记号，非作者编号公式",
+      "§2/附录 A 的动作维度与动作块写成教学记号，明确省略随机生成及预处理"
+    ],
+    "not_fabricated": "未补造相对动作时间归一化、67 项指标精确实现、组合平滑度评分或新的扩散训练目标。",
+    "symbols_and_dimensions_checked": true
+  },
+  "limitations": [
+    "代表单一 RJ45 接触任务、两个主要测试起点；最佳配置不等于族内通常表现。",
+    "标准会话十次，但早停与选择性复测导致样本量、伙伴技能和条件不一。",
+    "多视角和技能分解比较有同步改动；恢复示范单项消融 p=0.350。",
+    "五项离线指标仅在同族插入检查点有效；彼此高度相关，未验证跨任务或新策略外部泛化。",
+    "论文对环境鲁棒性的 80–100% 概括遗漏表 3 未重调起点的 60% 例外；正文已注明。",
+    "ROI 数值边界、标定参数、相对动作和指标完整计算细节、episode 权重实现没有完整给出；保留原文信息边界，不影响本文已有评分公式的确认。",
+    "原文给出代码体系和训练设置，但未提供本实验代码及数据的明确公开下载入口；不声称已复现。"
+  ],
+  "blocking_gaps": [],
+  "validation": {
+    "readme_template_order": "passed",
+    "full_abstract_translation": "checked_against_local_html_and_pdf",
+    "relative_image_links": "5/5 exist",
+    "mermaid": "节点、子图与引用检查通过；训练/离线/部署连接人工核验；已标记 VLA 无验证切分、抓取失败评分分支。",
+    "math": "4 个展示公式块；边界与符号检查通过；原文公式与教学记号已区分。",
+    "independent_read_only_review": "已完成独立审校，采纳流程图例外/失败分支和流匹配实验行建议。",
+    "changes": [
+      "README.md",
+      "review.json"
+    ],
+    "baseline": "执行前本版本无 README.md 或 review.json；未覆盖已有解读，未修改 metadata、preparation、原文、图片或配置。",
+    "tests": "仅文档变更，完成内容与链接检查，未运行全仓代码测试。"
+  },
+  "artifact_sha256": {
+    "README.md": "0dacf0191af98bf69a02950d16bf7c27b6c239b112172318ef3a7d583e13e2f9"
+  },
+  "summary": "已完成中文解读，核实 PDF 作者单位、关键公式与实验数值，检查五张原图链接，并保留统计限制及证据定位。"
+}

@@ -336,10 +336,15 @@
     "review": {
       "type": "object",
       "properties": {
+        "source_debounce_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 3600,
+          "default": 300
+        },
         "source_directory": {
           "type": "string",
-          "minLength": 1,
-          "pattern": "^(?!/)(?!.*\\.\\.).+$"
+          "minLength": 1
         }
       },
       "required": [
@@ -426,6 +431,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "home_question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300,
+          "pattern": "\\S"
+        },
         "appearance": {
           "enum": [
             "system",

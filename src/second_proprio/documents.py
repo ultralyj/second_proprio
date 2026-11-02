@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import datetime as dt
 import hashlib
 import json
@@ -14,6 +15,7 @@ import uuid
 from zoneinfo import ZoneInfo
 
 from second_proprio import config as configuration
+from second_proprio import review_sources
 
 
 class ConflictError(ValueError):
@@ -40,6 +42,16 @@ def file_hash(path: Path) -> str | None:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _empty_markdown(path: Path) -> bool:
+    """只将无正文的 Markdown 视为空文件，不推测标题或占位文字。"""
+    if path.suffix != ".md" or not path.is_file():
+        return False
+    try:
+        return not path.read_text("utf-8").strip()
+    except UnicodeDecodeError:
+        return False
 
 
 def _json(path: Path, default: Any) -> Any:
@@ -156,7 +168,20 @@ class DocumentStore:
         return identifier
 
     def save(self, relative: str, content: str, base_hash: str | None) -> dict:
-        """乐观校验后保存人工修订，冲突时只保存草稿。"""
+        """乐观校验后保存人工修订，冲突时只保存草稿。
+
+        Args:
+            relative: 知识正文或私密笔记的项目内相对路径。
+            content: 用户提交的完整正文。
+            base_hash: 用户开始编辑时读取的摘要，缺失文件使用 None。
+
+        Returns:
+            已保存正文、摘要、候选和编辑状态。
+
+        Raises:
+            ConflictError: 正式文件已被其他操作修改，用户输入保留为草稿。
+            ValueError: 路径、文本或受管示例代码不符合编辑约束。
+        """
         path = self.document_path(relative)
         self.save_draft(relative, content, base_hash)
         current = self.read(relative)
@@ -286,7 +311,21 @@ class DocumentStore:
                base_hash: str | None,
                content: str | None = None,
                path: str | None = None) -> dict:
-        """对比当前基准后整体采纳候选，保留用户编辑后的候选文本。"""
+        """对比当前基准后整体采纳候选，只将实际改写的文件标为人工。
+
+        Args:
+            identifier: 待采纳事务标识。
+            base_hash: 当前主文档摘要，用于确认用户比较的版本未变化。
+            content: 可选的候选正文；与候选相同时视为直接采纳。
+            path: 用户正在比较的主文档路径，省略时选取首个 Markdown。
+
+        Returns:
+            发布结果和需要由队列所有者提交的关联状态。
+
+        Raises:
+            ConflictError: 主文档或任一关联文件与采纳基准不一致。
+            ValueError: 候选已处理，或编辑目标及文本不合法。
+        """
         manifest_path, manifest = self._manifest(identifier)
         if manifest["status"] != "waiting_review":
             raise ValueError("候选已经处理")
@@ -313,10 +352,15 @@ class DocumentStore:
         if content is not None:
             if not primary["path"].endswith(".md"):
                 raise ValueError("只能编辑候选 Markdown 正文")
+            if not isinstance(content, str) or len(
+                    content.encode("utf-8")) > 4 * 1024 * 1024:
+                raise ValueError("正文必须为不超过 4 MiB 的文本")
             data = content.encode("utf-8")
-            _atomic_bytes(manifest_path.parent / primary["blob"], data)
-            primary["new_hash"] = hashlib.sha256(data).hexdigest()
-            manifest["author"] = "user"
+            digest = hashlib.sha256(data).hexdigest()
+            if digest != primary["new_hash"]:
+                _atomic_bytes(manifest_path.parent / primary["blob"], data)
+                primary["new_hash"] = digest
+                primary["author"] = "user"
         manifest["status"] = "prepared"
         configuration.atomic_json(manifest_path, manifest)
         return self._commit(manifest_path, manifest)
@@ -349,21 +393,26 @@ class DocumentStore:
                 _atomic_bytes(target, data)
             if target.suffix in {".md", ".py"}:
                 record = self._record(entry["path"])
-                if record.get("hash") != entry["new_hash"]:
+                author = entry.get("author", manifest.get("author", "ai"))
+                reset_manual = (entry.get("reset_manual", False) and
+                                record.get("manual") and author != "user")
+                mark_manual = author == "user" and not record.get("manual")
+                if (record.get("hash") != entry["new_hash"] or reset_manual or
+                        mark_manual):
                     revision = self._revision(entry["path"],
-                                              target.read_bytes(),
-                                              manifest.get("author", "ai"))
+                                              target.read_bytes(), author)
                     configuration.atomic_json(
                         self.directory / "index" /
                         f"{_key(entry['path'])}.json", {
                             "hash":
                                 entry["new_hash"],
                             "manual":
-                                bool(
-                                    record.get("manual") or
-                                    manifest.get("author") == "user" or
-                                    (entry["base_hash"] is not None and
-                                     record.get("hash") != entry["base_hash"])),
+                                bool(author == "user" or
+                                     (not entry.get("reset_manual", False) and
+                                      (record.get("manual") or
+                                       (entry["base_hash"] is not None and
+                                        record.get("hash")
+                                        != entry["base_hash"])))),
                             "revision":
                                 revision,
                         })
@@ -379,7 +428,8 @@ class DocumentStore:
                 if entry["path"].endswith(".md")
             ],
             "settings": manifest.get("settings", {}),
-            "settings_base": manifest.get("settings_base", {})
+            "settings_base": manifest.get("settings_base", {}),
+            **manifest.get("review", {})
         }
 
     def recover(self) -> list[dict]:
@@ -396,7 +446,20 @@ def create_workspace(root: Path,
                      config: dict,
                      run_id: str,
                      task: dict | None = None) -> dict:
-    """复制生成所需资源到独立目录，不共享可写链接或实时数据库。"""
+    """复制任务所需资源并登记生成基线，不共享可写链接或实时数据库。
+
+    Args:
+        root: 正式项目根目录。
+        config: 本次任务使用的配置快照。
+        run_id: 唯一运行标识，用于建立隔离工作目录。
+        task: 任务类型及范围；省略时准备日常课程任务。
+
+    Returns:
+        工作目录、逐文件生成基线及隔离来源后的工作区配置。
+
+    Raises:
+        ValueError: 运行标识非法、工作区已经存在或任务类型不支持。
+    """
     if not run_id.replace("-", "").replace("_", "").isalnum():
         raise ValueError("不合法的任务标识")
     state = configuration.resolve_path(root, config["paths"]["state"])
@@ -411,12 +474,14 @@ def create_workspace(root: Path,
     folders = [".agents", "config"]
     files = [root / "AGENTS.md"]
     private = Path(config["paths"]["private"])
-    source_folder = configuration.resolve_path(
-        root, config["review"]["source_directory"])
+    worker_config = copy.deepcopy(config)
     review_day = None
+    evidence = None
     if kind == "papers":
         folders.append(config["paths"]["papers"])
-        files.append(state / "paper-candidates.json")
+        files.extend(state / name for name in ("paper-candidates.json",
+                                               "paper-collection-report.json",
+                                               "paper-preparation-report.json"))
     elif kind == "course":
         folders.append(config["paths"]["courses"])
         if payload.get("mode") == "feedback" and payload.get("lesson_id"):
@@ -436,8 +501,11 @@ def create_workspace(root: Path,
                       dt.datetime.fromisoformat(stamp).astimezone(
                           ZoneInfo(config["timezone"])).date() if stamp else
                       dt.datetime.now(ZoneInfo(config["timezone"])).date())
-        folders.append(config["review"]["source_directory"])
+        evidence = review_sources.scan(root, config, review_day)
+        worker_config["review"]["source_directory"] = str(private /
+                                                          "review-inputs")
         files.append(root / private / "daily" / f"{review_day}.md")
+        files.append(root / private / "review-context" / f"{review_day}.json")
     else:
         raise ValueError("该任务不需要生成工作区")
     for folder in folders:
@@ -456,26 +524,20 @@ def create_workspace(root: Path,
         target.parent.mkdir(parents=True, exist_ok=True)
         if kind != "papers" and source.suffix.lower() == ".pdf":
             continue
-        if review_day and source.is_relative_to(source_folder):
-            if source.suffix != ".json":
-                continue
-            data = _json(source, {})
-            selected = []
-            for message in data.get("messages", []):
-                try:
-                    stamp = dt.datetime.fromisoformat(message["timestamp"])
-                    if stamp.astimezone(ZoneInfo(
-                            config["timezone"])).date() == review_day:
-                        selected.append(message)
-                except (ValueError, TypeError, KeyError):
-                    continue
-            if not selected:
-                continue
-            configuration.atomic_json(target, {**data, "messages": selected})
-        else:
-            shutil.copy2(source, target)
+        shutil.copy2(source, target)
         baseline[relative] = file_hash(target)
-    configuration.atomic_json(workspace / "config/settings.json", config)
+    if evidence is not None:
+        relative = str(private / "review-inputs" / f"{review_day}.json")
+        target = workspace / relative
+        configuration.atomic_json(target, evidence)
+        baseline[relative] = file_hash(target)
+        configuration.atomic_json(
+            workspace / config["paths"]["state"] / "review-source.json", {
+                key: value
+                for key, value in evidence.items()
+                if key != "messages"
+            })
+    configuration.atomic_json(workspace / "config/settings.json", worker_config)
     configuration.atomic_json(workspace.parent / "baseline.json", baseline)
     configuration.atomic_json(
         workspace.parent / "scope.json", {
@@ -484,11 +546,15 @@ def create_workspace(root: Path,
             "lesson_id": payload.get("lesson_id"),
             "review_day": str(review_day) if review_day else None,
         })
-    return {"workspace": str(workspace), "baseline": baseline}
+    return {
+        "workspace": str(workspace),
+        "baseline": baseline,
+        "worker_config": worker_config
+    }
 
 
 def _publishable(relative: str, config: dict) -> bool:
-    """仅允许模型发布任务产物，拒绝配置、程序与凭据变更。"""
+    """仅发布知识产物、教学示例与必要状态，不发布配置或运行程序。"""
     path = Path(relative)
     for name in ("courses", "papers"):
         if path.is_relative_to(Path(config["paths"][name])):
@@ -547,7 +613,23 @@ def _within_scope(relative: str, config: dict, scope: dict) -> bool:
 def publish_workspace(root: Path, config: dict, run_id: str,
                       workspace: Path | str, baseline: dict,
                       result: dict) -> dict:
-    """将独立生成结果变为已发布成果或待人工采纳的完整候选组。"""
+    """将已经验收的生成结果发布，或保留为待采纳的完整文件组。
+
+    Args:
+        root: 正式项目根目录。
+        config: 任务配置快照。
+        run_id: 本次运行标识。
+        workspace: 只存放生成草稿的隔离目录。
+        baseline: 生成开始前复制文件时记录的摘要。
+        result: 已验收成果、输入指纹及待提交的关联状态。
+
+    Returns:
+        已完成或等待采纳的结果；队列所有者仅在发布后提交关联状态。
+
+    Raises:
+        ConflictError: 已决定发布后文件又被外部修改，保留事务供恢复。
+        ValueError: 文件路径越出允许的项目目录。
+    """
     workspace = Path(workspace)
     store = DocumentStore(root, config)
     fingerprint = result.get("input_fingerprint")
@@ -579,18 +661,21 @@ def publish_workspace(root: Path, config: dict, run_id: str,
             continue
         target = configuration.resolve_path(root, relative)
         current = file_hash(target)
+        if current == new_hash:
+            continue
         if target.is_relative_to(
                 configuration.resolve_path(root, config["paths"]["private"]) /
                 "notes") and (target.exists() or
                               baseline.get(relative) is not None):
             continue
         record = store._record(relative)  # pylint: disable=protected-access
+        empty_original = current is None or _empty_markdown(target)
         if current != baseline.get(relative):
             needs_review = True
         if target.suffix in {
                 ".md", ".py"
-        } and current and (not record or record.get("manual") or
-                           current != record.get("hash")):
+        } and not empty_original and (not record or record.get("manual") or
+                                      current != record.get("hash")):
             needs_review = True
         blob = f"files/{len(entries)}"
         (folder / "files").mkdir(parents=True, exist_ok=True)
@@ -600,6 +685,7 @@ def publish_workspace(root: Path, config: dict, run_id: str,
             "base_hash": current,
             "generation_base_hash": baseline.get(relative),
             "new_hash": new_hash,
+            "reset_manual": empty_original,
             "blob": blob
         })
     # 先发布正文，最后发布目录与反馈确认元数据。
@@ -616,6 +702,11 @@ def publish_workspace(root: Path, config: dict, run_id: str,
         "settings_base": result.get("settings_base", {}),
         "author": "ai",
         "input_fingerprint": fingerprint,
+        "review": {
+            key: result[key]
+            for key in ("review_source_fingerprint", "review_date")
+            if key in result
+        },
         "status": "waiting_review" if needs_review else "prepared"
     }
     path = folder / "manifest.json"
@@ -626,7 +717,8 @@ def publish_workspace(root: Path, config: dict, run_id: str,
             "candidate_id": identifier,
             "publication_id": identifier,
             "artifacts": [],
-            "summary": "保留当前正文，生成内容等待采纳"
+            "summary": "保留当前正文，生成内容等待采纳",
+            **manifest.get("review", {})
         }
     return store._commit(path, manifest)  # pylint: disable=protected-access
 
@@ -652,6 +744,7 @@ def recover_publications(root: Path,
                     "artifacts": [],
                     "settings": {},
                     "summary": "生成内容等待采纳",
+                    **manifest.get("review", {})
                 })
             elif manifest.get("status") == "published":
                 recovered.append({
@@ -665,5 +758,6 @@ def recover_publications(root: Path,
                     ],
                     "settings": manifest.get("settings", {}),
                     "settings_base": manifest.get("settings_base", {}),
+                    **manifest.get("review", {})
                 })
     return recovered

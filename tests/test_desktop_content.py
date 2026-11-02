@@ -15,7 +15,9 @@ from second_proprio import documents
 def fixture_project(tmp_path: Path) -> tuple[Path, dict]:
     """复制公共课程与配置，绝不读取真实私密数据。"""
     source = Path(__file__).resolve().parents[1]
-    shutil.copytree(source / "config", tmp_path / "config")
+    (tmp_path / "config").mkdir()
+    for name in ("schema.json", "settings.example.json"):
+        shutil.copyfile(source / "config" / name, tmp_path / "config" / name)
     shutil.copytree(source / "courses", tmp_path / "courses")
     config = json.loads((tmp_path / "config/settings.example.json").read_text())
     config["runtime"]["notify"] = False
@@ -103,6 +105,237 @@ def test_new_generation_publishes_and_manual_changes_produce_candidate(project):
     assert accepted["status"] == "completed"
     assert store.read(path)["content"] == "# 合并后的版本"
     assert store.read(path)["manual_modified"]
+
+
+@pytest.mark.parametrize("kind,path", [
+    ("papers", "papers/topic/1234.56789/versions/v1/README.md"),
+    ("course", "courses/lessons/empty.md"),
+    ("review", "private/daily/2026-10-29.md"),
+])
+@pytest.mark.parametrize(
+    "initial",
+    ["missing", "empty", "whitespace", "manual_empty", "deleted_manual"])
+def test_empty_document_publishes_without_inheriting_manual_history(
+        project, kind, path, initial):
+    """各模块的空原文直接发布，旧人工历史不能阻止后续自动更新。"""
+    root, config = project
+    store = documents.DocumentStore(root, config)
+    target = root / path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if initial in {"manual_empty", "deleted_manual"}:
+        saved = store.save(path, "# 已清空的旧人工正文", None)
+        store.save(path, " \n\t", saved["hash"])
+        if initial == "deleted_manual":
+            target.unlink()
+    elif initial != "missing":
+        target.write_text(" \n\t\u3000" if initial == "whitespace" else "",
+                          encoding="utf-8")
+    history = store.history(path)["items"]
+    task = {"kind": kind, "scheduled_at": "2026-10-29T22:30:00+08:00"}
+    for index in range(2):
+        run_id = f"empty-{index}"
+        stage = documents.create_workspace(root, config, run_id, task)
+        output = Path(stage["workspace"]) / path
+        output.parent.mkdir(parents=True, exist_ok=True)
+        expected = f"# 已验收的正文 {index}"
+        output.write_text(expected, encoding="utf-8")
+        result = documents.publish_workspace(root, config, run_id,
+                                             stage["workspace"],
+                                             stage["baseline"], {})
+        assert result["status"] == "completed"
+        assert target.read_text("utf-8") == expected
+        assert not store.read(path)["manual_modified"]
+        assert not store.candidates(path)["items"]
+    assert {entry["id"] for entry in history
+           } <= {entry["id"] for entry in store.history(path)["items"]}
+
+
+@pytest.mark.parametrize("external", ["clear", "delete"])
+def test_regenerating_old_text_after_external_clear_resets_manual_flag(
+        project, external):
+    """外部清空后重生成旧人工正文，仍应清除标记以便下一次自动更新。"""
+    root, config = project
+    path = "courses/lessons/empty.md"
+    target = root / path
+    store = documents.DocumentStore(root, config)
+    store.save(path, "# 原来的正文 A", None)
+    if external == "clear":
+        target.write_text("", encoding="utf-8")
+    else:
+        target.unlink()
+    for index, text in enumerate(("# 原来的正文 A", "# 后续自动正文 B")):
+        run_id = f"regenerate-identical-{index}"
+        stage = documents.create_workspace(root, config, run_id)
+        (Path(stage["workspace"]) / path).write_text(text, encoding="utf-8")
+        result = documents.publish_workspace(root, config, run_id,
+                                             stage["workspace"],
+                                             stage["baseline"], {})
+        assert result["status"] == "completed"
+        assert target.read_text("utf-8") == text
+        assert not store.read(path)["manual_modified"]
+        assert not store.candidates(path)["items"]
+    assert any(entry["author"] == "user" and entry["content"] == "# 原来的正文 A"
+               for entry in store.history(path)["items"])
+
+
+def test_empty_document_publication_preserves_unsaved_user_draft(project):
+    """正式正文为空时可发布，但不清理尚未提交的个人草稿。"""
+    root, config = project
+    path = "courses/lessons/empty.md"
+    store = documents.DocumentStore(root, config)
+    store.save(path, "", None)
+    saved = store.save_draft(path, "我的未提交编辑", store.read(path)["hash"])
+    stage = documents.create_workspace(root, config, "keep-edit-draft")
+    (Path(stage["workspace"]) / path).write_text("# AI 正文", encoding="utf-8")
+    result = documents.publish_workspace(root, config, "keep-edit-draft",
+                                         stage["workspace"], stage["baseline"],
+                                         {})
+    assert result["status"] == "completed"
+    assert store.read(path)["draft"] == saved["draft"]
+
+
+@pytest.mark.parametrize("initial", [None, " \n\t"])
+def test_empty_document_does_not_overwrite_concurrent_user_text(
+        project, initial):
+    """生成开始时虽为空，发布前新写的用户正文仍须进入采纳流程。"""
+    root, config = project
+    path = "courses/lessons/empty.md"
+    target = root / path
+    if initial is not None:
+        target.write_text(initial, encoding="utf-8")
+    stage = documents.create_workspace(root, config, "empty-concurrent")
+    (Path(stage["workspace"]) / path).write_text("# AI 正文", encoding="utf-8")
+    target.write_text("刚刚写下的新正文", encoding="utf-8")
+    result = documents.publish_workspace(root, config, "empty-concurrent",
+                                         stage["workspace"], stage["baseline"],
+                                         {})
+    assert result["status"] == "waiting_review"
+    assert target.read_text("utf-8") == "刚刚写下的新正文"
+
+
+def test_empty_document_rechecks_version_during_commit(project, monkeypatch):
+    """空原文自动发布仍在最终写入前检查并发版本，避免静默覆盖。"""
+    root, config = project
+    path = "courses/lessons/empty.md"
+    target = root / path
+    target.write_text("", encoding="utf-8")
+    stage = documents.create_workspace(root, config, "empty-commit-race")
+    (Path(stage["workspace"]) / path).write_text("# AI 正文", encoding="utf-8")
+    original = documents.DocumentStore._commit  # pylint: disable=protected-access
+
+    def edit_before_commit(store, manifest_path, manifest):
+        target.write_text("提交前的外部修改", encoding="utf-8")
+        return original(store, manifest_path, manifest)
+
+    monkeypatch.setattr(documents.DocumentStore, "_commit", edit_before_commit)
+    with pytest.raises(documents.ConflictError):
+        documents.publish_workspace(root, config, "empty-commit-race",
+                                    stage["workspace"], stage["baseline"], {})
+    assert target.read_text("utf-8") == "提交前的外部修改"
+
+
+@pytest.mark.parametrize("related", ["code", "metadata"])
+def test_empty_document_does_not_bypass_related_file_protection(
+        project, related):
+    """空正文不能使同一事务中的源码人工修改或元数据并发变化失去保护。"""
+    root, config = project
+    path = "courses/lessons/empty.md"
+    (root / path).write_text("", encoding="utf-8")
+    source = "courses/examples/empty_related.py"
+    if related == "code":
+        (root / source).write_text("print('user')\n", encoding="utf-8")
+    stage = documents.create_workspace(root, config, "empty-related")
+    workspace = Path(stage["workspace"])
+    (workspace / path).write_text("# AI 正文", encoding="utf-8")
+    if related == "code":
+        (workspace / source).write_text("print('AI')\n", encoding="utf-8")
+    else:
+        source = "courses/syllabus.json"
+        (workspace / source).write_text('{"lessons":[]}', encoding="utf-8")
+        (root / source).write_text('{"lessons":[],"user":true}',
+                                   encoding="utf-8")
+    before = (root / source).read_bytes()
+    result = documents.publish_workspace(root, config, "empty-related",
+                                         workspace, stage["baseline"], {})
+    assert result["status"] == "waiting_review"
+    assert (root / path).read_text("utf-8") == ""
+    assert (root / source).read_bytes() == before
+
+
+def test_empty_private_note_still_cannot_be_replaced_by_generation(project):
+    """空原文规则不允许模型代写已存在的私人笔记。"""
+    root, config = project
+    path = "private/notes/empty.md"
+    (root / path).parent.mkdir(parents=True)
+    (root / path).write_text(" \n\t", encoding="utf-8")
+    stage = documents.create_workspace(root, config, "empty-private-note")
+    (Path(stage["workspace"]) / path).write_text("模型改写", encoding="utf-8")
+    documents.publish_workspace(root, config, "empty-private-note",
+                                stage["workspace"], stage["baseline"], {})
+    assert (root / path).read_text("utf-8") == " \n\t"
+
+
+@pytest.mark.parametrize(
+    "report", ["paper-collection-report.json", "paper-preparation-report.json"])
+@pytest.mark.parametrize("external", ["unchanged", "same", "different"])
+def test_new_paper_report_baseline_and_concurrent_updates(
+        project, report, external):
+    """新论文携带报告基线；已同步报告不阻塞，不同的并发更新仍受保护。"""
+    root, config = project
+    report_path = Path(config["paths"]["state"]) / report
+    target = root / report_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text('{"papers":[]}', encoding="utf-8")
+    stage = documents.create_workspace(root, config, "new-paper-report",
+                                       {"kind": "papers"})
+    assert stage["baseline"][str(report_path)] == documents.file_hash(target)
+    workspace = Path(stage["workspace"])
+    paper_path = "papers/topic/1234.56789/versions/v1/README.md"
+    paper = workspace / paper_path
+    paper.parent.mkdir(parents=True)
+    paper.write_text("# 新论文解读", encoding="utf-8")
+    new_report = '{"papers":["1234.56789"]}'
+    (workspace / report_path).write_text(new_report, encoding="utf-8")
+    if external != "unchanged":
+        target.write_text(
+            new_report if external == "same" else '{"papers":["9999.99999"]}',
+            encoding="utf-8")
+    before = target.read_bytes()
+    result = documents.publish_workspace(root, config, "new-paper-report",
+                                         workspace, stage["baseline"], {})
+    if external == "different":
+        assert result["status"] == "waiting_review"
+        assert not (root / paper_path).exists()
+        assert target.read_bytes() == before
+    else:
+        assert result["status"] == "completed"
+        assert (root / paper_path).read_text("utf-8") == "# 新论文解读"
+        assert target.read_text("utf-8") == new_report
+
+
+def test_review_context_baseline_does_not_block_empty_body_publication(project):
+    """同日已存在的复盘上下文正常更新，不被误判为新增并发文件。"""
+    root, config = project
+    body_path = "private/daily/2026-10-29.md"
+    context_path = "private/review-context/2026-10-29.json"
+    documents.DocumentStore(root, config).save(body_path, "", None)
+    target = root / context_path
+    target.parent.mkdir(parents=True)
+    target.write_text('{"summary":"旧上下文"}', encoding="utf-8")
+    stage = documents.create_workspace(root, config, "empty-review-context", {
+        "kind": "review",
+        "scheduled_at": "2026-10-29T22:30:00+08:00"
+    })
+    assert stage["baseline"][context_path] == documents.file_hash(target)
+    workspace = Path(stage["workspace"])
+    (workspace / body_path).write_text("# 今日完成课程学习", encoding="utf-8")
+    updated_context = '{"summary":"今日完成课程学习"}'
+    (workspace / context_path).write_text(updated_context, encoding="utf-8")
+    result = documents.publish_workspace(root, config, "empty-review-context",
+                                         workspace, stage["baseline"], {})
+    assert result["status"] == "completed"
+    assert (root / body_path).read_text("utf-8") == "# 今日完成课程学习"
+    assert target.read_text("utf-8") == updated_context
 
 
 def test_candidate_accept_rechecks_all_file_versions(project):
@@ -355,7 +588,8 @@ def test_workspace_private_inputs_are_scoped_by_task(project):
         })["workspace"])
     assert not (review / "private/notes").exists()
     messages = json.loads(
-        (review / "private/chat-imports/export.json").read_text())["messages"]
+        (review /
+         "private/review-inputs/2026-10-29.json").read_text())["messages"]
     assert [item["text"] for item in messages] == ["today"]
     assert (review / "private/daily/2026-10-29.md").exists()
 
@@ -411,3 +645,67 @@ def test_external_code_edit_cannot_be_overwritten_by_generation(project):
                                             stage["baseline"], {})
     assert candidate["status"] == "waiting_review"
     assert (root / source).read_text() == "print('user edit')\n"
+
+
+@pytest.mark.parametrize("edited", [False, True])
+def test_accept_marks_only_changed_candidate_text_as_manual(project, edited):
+    """直接采纳不制造人工修改，编辑候选只保护实际改写的主文档。"""
+    root, config = project
+    stage = documents.create_workspace(root, config, "accept-authorship")
+    workspace = Path(stage["workspace"])
+    primary = "courses/lessons/new-primary.md"
+    companion = "courses/lessons/new-companion.md"
+    source = "courses/examples/new-example.py"
+    for relative, text in ((primary, "# 主文档"), (companion, "# 关联正文"),
+                           (source, "print('example')\n")):
+        (workspace / relative).write_text(text, encoding="utf-8")
+    (workspace / "courses/README.md").write_text("更新已有索引", encoding="utf-8")
+    candidate = documents.publish_workspace(root, config, "accept-authorship",
+                                            workspace, stage["baseline"], {})
+    assert candidate["status"] == "waiting_review"
+    store = documents.DocumentStore(root, config)
+    text = "# 用户改写" if edited else "# 主文档"
+    store.accept(candidate["candidate_id"], None, text, primary)
+    assert store.read(primary)["manual_modified"] is edited
+    assert not store.read(companion)["manual_modified"]
+    assert store.history(primary)["items"][0]["author"] == ("user"
+                                                            if edited else "ai")
+    next_stage = documents.create_workspace(root, config, "after-accept")
+    (Path(next_stage["workspace"]) / source).write_text("print('updated')\n")
+    result = documents.publish_workspace(root, config, "after-accept",
+                                         next_stage["workspace"],
+                                         next_stage["baseline"], {})
+    assert result["status"] == "completed"
+
+
+def test_editing_candidate_back_to_current_text_preserves_manual_intent(
+        project):
+    """候选改回现有正文仍是人工决策，不能在下一次生成时自动覆盖。"""
+    root, config = project
+    relative = "courses/lessons/review-choice.md"
+    stage = documents.create_workspace(root, config, "original-choice")
+    (Path(stage["workspace"]) / relative).write_text("# 原有 AI 正文", "utf-8")
+    documents.publish_workspace(root, config, "original-choice",
+                                stage["workspace"], stage["baseline"], {})
+    store = documents.DocumentStore(root, config)
+    original = store.read(relative)
+    assert not original["manual_modified"]
+    stage = documents.create_workspace(root, config, "candidate-choice")
+    workspace = Path(stage["workspace"])
+    (workspace / relative).write_text("# AI 候选更新", "utf-8")
+    (workspace / "courses/README.md").write_text("更新原有索引", "utf-8")
+    candidate = documents.publish_workspace(root, config, "candidate-choice",
+                                            workspace, stage["baseline"], {})
+    assert candidate["status"] == "waiting_review"
+    store.accept(candidate["candidate_id"], original["hash"],
+                 original["content"], relative)
+    assert store.read(relative)["manual_modified"]
+    assert store.read(relative)["hash"] == original["hash"]
+    assert store.history(relative)["items"][0]["author"] == "user"
+    stage = documents.create_workspace(root, config, "later-choice")
+    (Path(stage["workspace"]) / relative).write_text("# 后续 AI 更新", "utf-8")
+    result = documents.publish_workspace(root, config, "later-choice",
+                                         stage["workspace"], stage["baseline"],
+                                         {})
+    assert result["status"] == "waiting_review"
+    assert store.read(relative)["content"] == original["content"]

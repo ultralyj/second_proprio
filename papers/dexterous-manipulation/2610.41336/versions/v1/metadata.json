@@ -1,0 +1,31 @@
+{
+  "id": "2610.41336",
+  "version": 1,
+  "version_verified": true,
+  "title": "HandMimicX: Learning Human-Like Dexterous Manipulation via an Object-Centric Policy from Egocentric Videos",
+  "abstract": "Learning dexterous manipulation from human videos remains an open challenge, particularly in the context of transferring a single demonstration into a spatially generalizable robotic skill and maintaining physically plausible human-like interactions. Unlike prior works that emphasize hand-motion imitation, we introduce an object-centric framework for acquiring dexterous skills from egocentric human RGB-D videos. Within our framework, we formulate the reinforcement learning (RL) objective in terms of object motion to decouple the underlying skill from the specific hand trajectory and impose constraints on hand-object interaction states to promote more anatomically natural hand configurations. Extensive experiments in simulation and on real robots demonstrate that our method enables efficient learning from human videos and generalizable skill transfer across novel spatial configurations.",
+  "authors": [
+    "Zihan Gao",
+    "Yufei Liu",
+    "Yuhong Zhang",
+    "Zhen Yu",
+    "Xinhao Huang",
+    "Zhinan You",
+    "Kai W. Ho",
+    "Zipeng Ye",
+    "Peng Jiao",
+    "Haoqian Wang"
+  ],
+  "url": "https://arxiv.org/abs/2610.41336v1",
+  "published": "2026-10-30T06:51:27Z",
+  "updated": "2026-10-30T06:51:27Z",
+  "categories": [
+    "cs.RO"
+  ],
+  "metadata_source": "entry",
+  "topic_id": "dexterous-manipulation",
+  "reason": "关键词初筛命中：dexterous",
+  "semantic_review": "pending",
+  "collected_at": "2026-11-02T05:01:30.404090+00:00",
+  "paper_dir": "papers/dexterous-manipulation/2610.41336/versions/v1"
+}

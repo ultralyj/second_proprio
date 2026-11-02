@@ -1,9 +1,12 @@
 """管理单一桌面后台、响应本机控制并隔离执行长任务。"""
 
+# pylint: disable=too-many-lines
+
 from __future__ import annotations
 
 import asyncio
 import copy
+from contextlib import closing
 import ctypes
 import datetime as dt
 import fcntl
@@ -20,16 +23,54 @@ import uuid
 
 import jsonschema
 
+from second_proprio import __version__
 from second_proprio import config as configuration
 from second_proprio import personal
+from second_proprio import review_sources
+from second_proprio import review_refresh
 from second_proprio import rpc
 from second_proprio import runner
 from second_proprio import scheduler
 from second_proprio import sync
 from second_proprio.store import KINDS, Store, timestamp
 
+# Socket 协议版本独立于应用版本，兼容现有前端和 CLI。
 VERSION = "1"
 TERMINAL = {"completed", "skipped", "cancelled", "waiting_review"}
+ATTENTION_STATUSES = {"failed", "waiting_source", "waiting_review"}
+
+
+def _notification_result(output: bytes, stderr: bytes,
+                         returncode: int) -> tuple[bool, str | None]:
+    """只接受通知入口的明确成功响应，保留有界错误原因。
+
+    Args:
+        output: 通知入口的结构化标准输出。
+        stderr: 通知入口的标准错误。
+        returncode: 通知入口退出码。
+
+    Returns:
+        系统是否接受通知，以及失败时最多三百字的说明。
+    """
+    try:
+        response = json.loads(output)
+    except (ValueError, UnicodeDecodeError):
+        response = None
+    accepted = (isinstance(response, dict) and returncode == 0 and
+                (response.get("accepted") is True or
+                 response.get("status") in ("accepted", "sent")))
+    if accepted:
+        return True, None
+    details = []
+    if isinstance(response, dict):
+        details = [response.get("message"), response.get("error")]
+    details.append(stderr.decode("utf-8", errors="replace"))
+    for detail in details:
+        if isinstance(detail, str) and detail.strip():
+            return False, " ".join(detail.split())[:300]
+    if not isinstance(response, dict):
+        return False, "通知入口未返回有效的结构化响应"
+    return False, f"系统通知未接受（退出码 {returncode}），请检查通知权限"
 
 
 def _read(path: Path, default: object) -> object:
@@ -109,6 +150,9 @@ class Service:  # pylint: disable=too-many-instance-attributes
         self.syncing = False
         self.notifying = False
         self.config_error: str | None = None
+        self.review_scanning = False
+        self.next_review_scan = 0.0
+        self.review_changes: dict[str, tuple[str, float]] = {}
 
     @property
     def paused(self) -> bool:
@@ -133,6 +177,72 @@ class Service:  # pylint: disable=too-many-instance-attributes
         """返回 UI 所需的任务字段。"""
         return self.store.get(identifier)
 
+    def attention_task(self, task: dict) -> dict:
+        """附加当前待处理事项的版本与本机确认状态，不修改任务。
+
+        Args:
+            task: 已读取的任务记录。
+
+        Returns:
+            带有待处理版本和是否已确认字段的任务副本。
+        """
+        version = ""
+        if task["status"] in ATTENTION_STATUSES:
+            # 日志阶段、同步和更新时间不代表新的待处理事项。
+            episode = {
+                key: task.get(key)
+                for key in ("id", "status", "attempts", "failures",
+                            "last_error", "result", "finished_at")
+            }
+            if task["status"] == "waiting_source":
+                # 自动补查相同缺失来源不会产生新的待办；只比较实际原因和来源。
+                for key in ("attempts", "failures", "finished_at"):
+                    episode.pop(key)
+                episode["result"] = {
+                    key: value
+                    for key, value in task.get("result", {}).items()
+                    if key not in {
+                        "run_id", "workspace", "draft", "settings",
+                        "settings_base"
+                    }
+                }
+            version = hashlib.sha256(
+                json.dumps(episode, sort_keys=True).encode()).hexdigest()
+        acknowledged = self.store.get_setting(
+            f"desktop.attention_acknowledged:{task['id']}")
+        return {
+            **task, "attention_version": version,
+            "attention_dismissed": bool(version and acknowledged == version)
+        }
+
+    def acknowledge_attention(self, params: dict) -> dict:
+        """确认首页事项已处理，仅隐藏当前版本，不伪造任务执行成功。
+
+        Args:
+            params: 包含任务标识 id 和页面读取的 attention_version。
+
+        Returns:
+            确认后的任务及其首页显示状态。
+
+        Raises:
+            ValueError: 参数无效、任务不存在或无需处理。
+            rpc.RpcError: 待处理事项在点击之前已发生变化。
+        """
+        identifier = params.get("id")
+        version = params.get("attention_version")
+        if not isinstance(identifier, str) or not identifier:
+            raise ValueError("必须提供任务标识")
+        if not isinstance(version, str) or not version:
+            raise ValueError("必须提供待处理事项版本")
+        task = self.attention_task(self.task(identifier))
+        if task["status"] not in ATTENTION_STATUSES:
+            raise ValueError("该任务当前没有需要处理的事项")
+        if version != task["attention_version"]:
+            raise rpc.RpcError("conflict", "待处理事项已变化，请刷新后再处理", {"task": task})
+        self.store.set_setting(f"desktop.attention_acknowledged:{identifier}",
+                               version)
+        return {"task": self.attention_task(task)}
+
     def notify(self, key: str, title: str, message: str) -> None:
         """将通知加入本地持久收件箱，不把请求成功当作已读。"""
         with self.store.connection:
@@ -156,12 +266,20 @@ class Service:  # pylint: disable=too-many-instance-attributes
         }
 
     async def dispatch(self, method: str, params: dict) -> object:  # pylint: disable=too-many-return-statements
-        """分发固定接口，禁止任意 shell、SQL 或函数调用。"""
+        """分发固定接口，禁止任意 shell、SQL 或函数调用。
+
+        Args:
+            method: 前端或 CLI 请求的方法名。
+            params: 已校验为对象的请求参数。
+
+        Returns:
+            可序列化为 JSON 的业务结果。
+
+        Raises:
+            ValueError: 业务参数不合法。
+            rpc.RpcError: 不支持的方法、版本冲突或运行中任务阻止操作。
+        """
         if method == "system.status":
-            tasks = self.store.export_tasks()
-            counts = {}
-            for task in tasks:
-                counts[task["status"]] = counts.get(task["status"], 0) + 1
             notices = [
                 dict(row) for row in self.store.connection.execute(
                     "SELECT * FROM notifications "
@@ -172,6 +290,8 @@ class Service:  # pylint: disable=too-many-instance-attributes
                     True,
                 "version":
                     VERSION,
+                "app_version":
+                    __version__,
                 "root":
                     str(self.root),
                 "paused":
@@ -179,7 +299,7 @@ class Service:  # pylint: disable=too-many-instance-attributes
                 "active_task":
                     self.task(self.active["id"]) if self.active else None,
                 "counts":
-                    counts,
+                    self.store.counts(),
                 "sync":
                     self.config_result()["sync"],
                 "notifications":
@@ -189,6 +309,10 @@ class Service:  # pylint: disable=too-many-instance-attributes
                 "config_error":
                     self.config_error
             }
+        if method == "review.sources":
+            return await asyncio.to_thread(review_sources.diagnostics,
+                                           self.root,
+                                           copy.deepcopy(self.config))
         if method == "config.get":
             return self.config_result()
         if method == "config.validate":
@@ -201,14 +325,19 @@ class Service:  # pylint: disable=too-many-instance-attributes
             return {"status": "queued"}
         if method == "tasks.list":
             return {
-                "tasks": list(reversed(self.store.export_tasks())),
-                "paused": self.paused
+                "tasks": [
+                    self.attention_task(task)
+                    for task in reversed(self.store.export_tasks())
+                ],
+                "paused": self.paused,
             }
         if method == "tasks.detail":
             return {
-                "task": self.task(params["id"]),
+                "task": self.attention_task(self.task(params["id"])),
                 "events": self.store.events(params["id"])
             }
+        if method == "tasks.acknowledge":
+            return self.acknowledge_attention(params)
         if method == "tasks.events":
             return {
                 "events":
@@ -235,7 +364,6 @@ class Service:  # pylint: disable=too-many-instance-attributes
         if method == "system.stop":
             if self.active and not params.get("cancel_current", False):
                 raise rpc.RpcError("active_task", "有任务正在运行，请明确取消后停止后台")
-            self.store.set_setting("desktop.paused", "true")
             if self.active:
                 await self.cancel(self.active["id"])
             self.stopping = True
@@ -270,8 +398,7 @@ class Service:  # pylint: disable=too-many-instance-attributes
                                self.config_result())
         candidate = params["config"]
         configuration.validate(self.root, candidate)
-        if candidate["paths"] != current["paths"] or candidate["review"][
-                "source_directory"] != current["review"]["source_directory"]:
+        if candidate["paths"] != current["paths"]:
             raise ValueError("首版不支持运行中移动数据目录")
         configuration.atomic_json(self.root / "config/settings.json", candidate)
         self.config = copy.deepcopy(candidate)
@@ -283,6 +410,7 @@ class Service:  # pylint: disable=too-many-instance-attributes
                 self.root,
                 candidate.get("desktop", {}).get("launch_at_login", True))
         self.config_error = None
+        self.next_review_scan = 0
         if current["schedules"] != candidate["schedules"] or current[
                 "timezone"] != candidate["timezone"]:
             now = scheduler.now_local(candidate)
@@ -346,44 +474,60 @@ class Service:  # pylint: disable=too-many-instance-attributes
     async def cancel(self, identifier: str) -> dict:
         """先记录取消意图，再确认运行进程退出。"""
         task = self.task(identifier)
-        if task["status"] in TERMINAL:
+        if task["status"] in TERMINAL or task["status"] == "cancel_requested":
             return {"task": task}
         if self.active and self.active["id"] == identifier:
             self.store.finish(identifier, "cancel_requested", task["result"])
             self.store.event(identifier, "cancelling", "正在结束执行进程，草稿保留")
-            self.background(self.terminate_active())
+            self.background(
+                self.terminate_active(dict(self.active), self.process))
         else:
-            self.store.finish(identifier, "cancelled", {"summary": "用户取消，草稿保留"})
+            self.store.finish(identifier, "cancelled", {
+                **task["result"], "summary": "用户取消，草稿保留"
+            })
             self.store.event(identifier, "cancelled", "已取消")
         return {"task": self.task(identifier)}
 
-    async def terminate_active(self) -> None:
-        """终止已验证归属的 Codex 进程组及工作进程。"""
-        if not self.active:
-            return
-        folder = Path(self.active["folder"])
-        marker = _read(folder / "codex-process.json", {})
-        pid = marker.get("pid")
-        if isinstance(pid, int) and _matching_process(
-                pid, str(self.active["workspace"])):
+    async def terminate_active(
+            self, active: dict,
+            process: asyncio.subprocess.Process | None) -> None:
+        """只终止调用时绑定的执行进程，不读取可能已清空或换人的运行槽。
+
+        Args:
+            active: 被取消任务的运行信息快照。
+            process: 该次执行的工作进程；尚未启动时为空。
+        """
+        folder = active.get("folder")
+        workspace = active.get("workspace")
+
+        def signal_codex(sig: signal.Signals) -> None:
+            """重新核验当前标记，只向指定工作区的 Codex 进程组发送信号。"""
+            if not folder or not workspace:
+                return
+            marker = _read(Path(folder) / "codex-process.json", {})
+            pid = marker.get("pid") if isinstance(marker, dict) else None
+            if isinstance(pid, int) and _matching_process(pid, str(workspace)):
+                try:
+                    os.killpg(pid, sig)
+                except ProcessLookupError:
+                    pass
+
+        signal_codex(signal.SIGTERM)
+        if process and process.returncode is None:
             try:
-                os.killpg(pid, signal.SIGTERM)
+                process.terminate()
             except ProcessLookupError:
                 pass
-        process = self.process
-        if process and process.returncode is None:
-            process.terminate()
             try:
                 await asyncio.wait_for(process.wait(), 10)
             except asyncio.TimeoutError:
-                process.kill()
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    pass
                 await process.wait()
-        if isinstance(pid, int) and _matching_process(
-                pid, str(self.active["workspace"])):
-            try:
-                os.killpg(pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
+        # 工作进程退出前可能刚写好子进程标记，必须在原目录再次检查。
+        signal_codex(signal.SIGKILL)
 
     def apply_publication(self, result: dict) -> None:
         """只在发布完成后提交关联计数与任务状态。"""
@@ -420,26 +564,45 @@ class Service:  # pylint: disable=too-many-instance-attributes
             self.store.event(identifier, "completed", "成果已发布")
 
     async def run_task(self, task: dict) -> None:
-        """准备隔离工作区，启动重任务并验收发布其输出。"""
+        """准备隔离工作区，启动重任务并验收发布其输出。
+
+        调度器须先预留唯一运行槽。本方法冻结配置，保留失败或取消的工作区，
+        只在发布成功后提交成果计数；最终释放运行槽，允许下一项执行。
+
+        Args:
+            task: 已预留运行槽的任务快照。
+        """
         from second_proprio import documents  # pylint: disable=import-outside-toplevel
+        current = self.task(task["id"])
+        if current["status"] in {"cancel_requested", "cancelled"}:
+            if current["status"] == "cancel_requested":
+                self.store.finish(task["id"], "cancelled", {
+                    **current["result"], "summary": "启动前已取消，草稿保留"
+                })
+                self.store.event(task["id"], "cancelled", "启动前取消，未创建执行进程")
+            if self.active and self.active["id"] == task["id"]:
+                self.active = None
+                self.process = None
+            return
         config = copy.deepcopy(self.config)
         now = scheduler.now_local(config)
         run_id = uuid.uuid4().hex
         folder = self.state / "desktop-runs" / run_id
-        folder.mkdir(parents=True, exist_ok=True)
         self.active = {
             "id": task["id"],
             "folder": str(folder),
             "workspace": "",
             "run_id": run_id
         }
-        self.store.claim(task["id"])
-        self.store.event(task["id"], "preparing", "准备独立草稿工作区")
-        with self.store.connection:
-            self.store.connection.execute(
-                "UPDATE tasks SET started_at=?,config_revision=? WHERE id=?",
-                (timestamp(), configuration.revision(config), task["id"]))
         try:
+            self.store.claim(task["id"])
+            folder.mkdir(parents=True, exist_ok=True)
+            self.store.event(task["id"], "preparing", "准备独立草稿工作区")
+            with self.store.connection:
+                self.store.connection.execute(
+                    "UPDATE tasks SET started_at=?,config_revision=? "
+                    "WHERE id=?",
+                    (timestamp(), configuration.revision(config), task["id"]))
             previous = task.get("result", {})
             previous_workspace = Path(previous.get("workspace", "/nonexistent"))
             if (task["kind"] == "papers" and
@@ -546,7 +709,7 @@ class Service:  # pylint: disable=too-many-instance-attributes
                 "workspace":
                     str(workspace),
                 "config":
-                    config,
+                    prepared.get("worker_config", config),
                 "task":
                     task,
                 "now":
@@ -577,6 +740,9 @@ class Service:  # pylint: disable=too-many-instance-attributes
             self.active["pid"] = self.process.pid
             configuration.atomic_json(self.state / "desktop-active.json",
                                       self.active)
+            # 创建子进程期间也可能收到取消请求，不能等它自行结束才取消。
+            if self.task(task["id"])["status"] == "cancel_requested":
+                await self.terminate_active(dict(self.active), self.process)
             with (folder / "worker.log").open("wb") as log:
                 while line := await self.process.stdout.readline():
                     log.write(line)
@@ -591,7 +757,7 @@ class Service:  # pylint: disable=too-many-instance-attributes
                         continue
             await self.process.wait()
             if self.task(task["id"])["status"] == "cancel_requested":
-                await self.terminate_active()
+                await self.terminate_active(dict(self.active), self.process)
                 self.store.finish(
                     task["id"], "cancelled", {
                         "summary": "已取消，草稿保留",
@@ -667,8 +833,12 @@ class Service:  # pylint: disable=too-many-instance-attributes
         except (OSError, ValueError, RuntimeError,
                 jsonschema.ValidationError) as error:
             if self.task(task["id"])["status"] == "cancel_requested":
-                self.store.finish(task["id"], "cancelled",
-                                  {"summary": "已取消，草稿保留"})
+                retained = dict(self.task(task["id"])["result"])
+                retained.update(summary="已取消，草稿保留", run_id=run_id)
+                if self.active["workspace"]:
+                    retained.update(draft=self.active["workspace"],
+                                    workspace=self.active["workspace"])
+                self.store.finish(task["id"], "cancelled", retained)
             else:
                 failures = self.task(task["id"])["failures"] + 1
                 maximum = config["scheduler"]["max_attempts"]
@@ -695,13 +865,19 @@ class Service:  # pylint: disable=too-many-instance-attributes
                                 "second proprio · 任务需要处理",
                                 str(error).split("；日志：", 1)[0][:200])
         finally:
-            with self.store.connection:
-                self.store.connection.execute(
-                    "UPDATE tasks SET finished_at=? WHERE id=?",
-                    (timestamp(), task["id"]))
-            (self.state / "desktop-active.json").unlink(missing_ok=True)
-            self.active = None
-            self.process = None
+            try:
+                with self.store.connection:
+                    self.store.connection.execute(
+                        "UPDATE tasks SET finished_at=? WHERE id=?",
+                        (timestamp(), task["id"]))
+                (self.state / "desktop-active.json").unlink(missing_ok=True)
+            finally:
+                self.active = None
+                self.process = None
+
+    async def refresh_review_sources(self) -> None:
+        """在后台执行节流的复盘来源检查。"""
+        await review_refresh.refresh(self)
 
     async def synchronize(self) -> None:
         """在快照数据库交换远端信封，主队列仍由本进程独占写入。"""
@@ -709,26 +885,23 @@ class Service:  # pylint: disable=too-many-instance-attributes
         config = copy.deepcopy(self.config)
         shadow = self.state / "desktop-sync"
         state = shadow / config["paths"]["state"]
-        state.mkdir(parents=True, exist_ok=True)
-        destination = Store(state / "queue.sqlite3")
-        self.store.connection.backup(destination.connection)
-        with destination.connection:
-            destination.connection.execute(
-                "DELETE FROM tasks WHERE source='manual'")
-            destination.connection.execute(
-                "UPDATE tasks SET status='pending' WHERE status IN "
-                "('running','cancel_requested','waiting_review')")
-            destination.connection.execute(
-                "UPDATE tasks SET status='skipped' WHERE status='cancelled'")
-        destination.close()
         try:
+            state.mkdir(parents=True, exist_ok=True)
+            with closing(Store(state / "queue.sqlite3")) as destination:
+                self.store.connection.backup(destination.connection)
+                with destination.connection:
+                    destination.connection.execute(
+                        "DELETE FROM tasks WHERE source='manual'")
+                    destination.connection.execute(
+                        "UPDATE tasks SET status='pending' WHERE status IN "
+                        "('running','cancel_requested','waiting_review')")
+                    destination.connection.execute(
+                        "UPDATE tasks SET status='skipped' "
+                        "WHERE status='cancelled'")
             result = await asyncio.to_thread(sync.sync, shadow, config)
             configuration.atomic_json(self.state / "sync-status.json", result)
-            remote = Store(state / "queue.sqlite3")
-            try:
+            with closing(Store(state / "queue.sqlite3")) as remote:
                 self.store.merge_tasks(remote.export_tasks())
-            finally:
-                remote.close()
         except (OSError, ValueError, RuntimeError) as error:
             configuration.atomic_json(self.state / "sync-status.json", {
                 "status": "error",
@@ -756,32 +929,29 @@ class Service:  # pylint: disable=too-many-instance-attributes
                 rows) == 1 else "second proprio · 新进展"
             body = rows[0]["body"] if len(rows) == 1 else "\n".join(
                 row["body"][:90] for row in rows[:4])
-            process = await asyncio.create_subprocess_exec(
-                app,
-                "--notify-json",
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE)
             try:
-                output, _ = await asyncio.wait_for(
+                process = await asyncio.create_subprocess_exec(
+                    app,
+                    "--notify-json",
+                    stdin=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE)
+                output, stderr = await asyncio.wait_for(
                     process.communicate(
                         json.dumps({
                             "title": title,
                             "body": body,
                             "message": body
                         }).encode()), 15)
-                accepted = process.returncode == 0
-                if output.strip():
-                    response = json.loads(output)
-                    accepted = accepted and response.get(
-                        "accepted",
-                        response.get("status") in {"accepted", "sent"})
-                error = None if accepted else "系统通知未接受，请检查通知权限"
-            except (asyncio.TimeoutError, ValueError):
+                accepted, error = _notification_result(output, stderr,
+                                                       process.returncode)
+            except asyncio.TimeoutError:
                 if process.returncode is None:
                     process.kill()
                     await process.wait()
-                accepted, error = False, "通知入口超时或响应无效"
+                accepted, error = False, "通知入口超时（15 秒）"
+            except OSError as exception:
+                accepted, error = False, f"通知入口启动或通信失败：{exception}"[:300]
             with self.store.connection:
                 self.store.connection.executemany(
                     "UPDATE notifications SET status=?,error=? WHERE id=?",
@@ -824,14 +994,13 @@ class Service:  # pylint: disable=too-many-instance-attributes
                     **retained, "summary": "上次执行中断，草稿保留"
                 })
         from second_proprio import documents  # pylint: disable=import-outside-toplevel
-        if hasattr(documents, "recover_publications"):
-            for publication in documents.recover_publications(
-                    self.root, self.config, active.get("run_id")):
-                if publication.get("status") == "waiting_review":
-                    self.store.finish(publication["task_id"], "waiting_review",
-                                      publication)
-                else:
-                    self.apply_publication(publication)
+        for publication in documents.recover_publications(
+                self.root, self.config, active.get("run_id")):
+            if publication.get("status") == "waiting_review":
+                self.store.finish(publication["task_id"], "waiting_review",
+                                  publication)
+            else:
+                self.apply_publication(publication)
         # 手动采纳没有活动 worker；精确补交正文已发布但队列尚未确认的候选。
         directory = documents.DocumentStore(self.root, self.config).directory
         for task in self.store.export_tasks():
@@ -856,7 +1025,8 @@ class Service:  # pylint: disable=too-many-instance-attributes
                         if entry["path"].endswith(".md")
                     ],
                     "settings": manifest.get("settings", {}),
-                    "settings_base": manifest.get("settings_base", {})
+                    "settings_base": manifest.get("settings_base", {}),
+                    **manifest.get("review", {})
                 })
             elif manifest.get("status") == "rejected":
                 self.store.finish(task["id"], "skipped",
@@ -918,6 +1088,10 @@ class Service:  # pylint: disable=too-many-instance-attributes
                             "workspace": ""
                         }
                         self.background(self.run_task(task))
+                if (not self.review_scanning and not self.stopping and
+                        time.monotonic() >= self.next_review_scan):
+                    self.next_review_scan = time.monotonic() + 60
+                    self.background(self.refresh_review_sources())
                 if not self.syncing and time.monotonic(
                 ) >= self.next_sync and not self.stopping:
                     self.next_sync = time.monotonic(
@@ -940,6 +1114,8 @@ class Service:  # pylint: disable=too-many-instance-attributes
             if len(line) > rpc.MAX_MESSAGE:
                 raise ValueError("请求过大")
             request = json.loads(line)
+            if not isinstance(request, dict):
+                raise ValueError("接口请求必须是对象")
             identifier = request.get("id")
             if not isinstance(request.get("method"), str) or not isinstance(
                     request.get("params", {}), dict):

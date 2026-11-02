@@ -1,3 +1,4 @@
+/** 定义桌面服务的数据契约及受限调用入口，统一错误和时间显示。 */
 import { invoke } from "@tauri-apps/api/core";
 export type Page =
   "today" | "papers" | "course" | "review" | "care" | "tasks" | "settings";
@@ -39,7 +40,7 @@ export interface Config {
     topics: Topic[];
   };
   course: { daily_new_lessons: number; level: string };
-  review: { source_directory: string };
+  review: { source_directory: string; source_debounce_seconds?: number };
   relationship: {
     name: string;
     anchor_date: string;
@@ -56,6 +57,7 @@ export interface Config {
     auto_run: boolean;
   };
   desktop?: {
+    home_question?: string;
     appearance?: "system" | "light" | "dark";
     launch_at_login?: boolean;
     notifications?: "content_and_action" | "action_only" | "all";
@@ -75,6 +77,7 @@ export interface ContentItem {
   date: string;
   topic?: string;
   arxiv_id?: string;
+  rating?: number | null;
   version?: number;
   lesson_id?: string;
   learned?: boolean;
@@ -114,6 +117,8 @@ export interface Revision {
 }
 export interface Task {
   id: string;
+  attention_version?: string;
+  attention_dismissed?: boolean;
   kind: Kind;
   status: string;
   scheduled_at: string;
@@ -200,6 +205,7 @@ export async function rpc<T>(
 }
 export const openPath = (path: string) => invoke("open_path", { path });
 export const chooseImport = () => invoke<string | null>("choose_import");
+export const chooseDirectory = () => invoke<string | null>("choose_directory");
 export const serviceControl = (action: "start" | "stop") =>
   invoke("service_control", { action });
 export const checkLogin = () =>

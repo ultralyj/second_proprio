@@ -1,3 +1,4 @@
+/** 查询和筛选论文、课程及复盘，组合正文与独立笔记阅读区域。 */
 import { useCallback, useEffect, useState } from "react";
 import {
   Search,
@@ -238,6 +239,11 @@ export default function Library({
                       <>
                         <span>{item.date?.slice(0, 10) || "未标注日期"}</span>
                         {item.version && <span>v{item.version}</span>}
+                        {item.rating && (
+                          <span aria-label={`我的评分 ${item.rating} 分`}>
+                            ★ {item.rating}
+                          </span>
+                        )}
                         {item.status === "waiting_review" && (
                           <span className="accent">等待采纳</span>
                         )}

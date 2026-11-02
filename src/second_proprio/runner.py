@@ -7,9 +7,11 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import signal
 import subprocess
 import time
+import urllib.parse
 
 import jsonschema
 
@@ -224,6 +226,49 @@ def verify_files(root: Path, paths: list[str]) -> None:
             raise ValueError(f"成果缺失或为空：{relative}")
 
 
+def verify_paper_readme(folder: Path) -> None:
+    """检查论文正文有完整阅读结构与实际可读的本地图，不替代语义核验。
+
+    Args:
+        folder: 单篇论文的版本目录。
+
+    Raises:
+        ValueError: 正文缺少必要内容，或原图链接缺失、越界。
+    """
+    text = (folder / "README.md").read_text("utf-8")
+    headings = list(re.finditer(r"(?m)^## ([^\n]+)\n", text))
+    sections = {}
+    for index, heading in enumerate(headings):
+        end = headings[index +
+                       1].start() if index + 1 < len(headings) else len(text)
+        sections[heading.group(1).strip()] = (heading.start(),
+                                              text[heading.end():end].strip())
+    required = ["中文摘要", "Key insight", "方法管线", "方法详解", "实验"]
+    if any(not sections.get(name, (None, ""))[1] for name in required):
+        raise ValueError("论文正文缺少摘要、Key insight、管线、方法或实验内容")
+    positions = [sections[name][0] for name in required]
+    if positions != sorted(positions):
+        raise ValueError("论文正文顺序不符合阅读模板")
+    frontmatter = text[:positions[0]]
+    if any(label not in frontmatter for label in ("作者", "单位", "arXiv", "时间")):
+        raise ValueError("论文基本信息缺少作者单位、arXiv 版本或时间")
+    if re.search(r"解读日期|阅读[与及]?核验范围|语义审核|一句话解释", frontmatter):
+        raise ValueError("论文顶部仍包含已移除的过程审核块")
+    pipeline = sections["方法管线"][1]
+    if not re.search(r"```mermaid\s*\n(?:flowchart|graph)\s+\S+", pipeline):
+        raise ValueError("论文缺少 Mermaid 方法管线")
+    images = re.findall(r"!\[[^\]]*\]\(([^)]+)\)", text)
+    if not images or not re.search(r"!\[[^\]]*\]\(", sections["方法详解"][1]):
+        raise ValueError("方法详解缺少本地原图")
+    for target in images:
+        relative = urllib.parse.unquote(target.strip().split()[0].strip("<>"))
+        path = (folder / relative).resolve()
+        if (urllib.parse.urlsplit(relative).scheme or
+                not path.is_relative_to(folder.resolve()) or
+                not path.is_file() or not path.stat().st_size):
+            raise ValueError(f"论文原图链接不可用或越界：{relative}")
+
+
 def _papers(root: Path, config: dict, store: Store, now: dt.datetime) -> dict:
     """合并服务器历史候选后处理，保留下载失败以便重试。"""
     state = root / config["paths"]["state"]
@@ -270,11 +315,31 @@ def _papers(root: Path, config: dict, store: Store, now: dt.datetime) -> dict:
             f"使用 $sp-arxiv。候选元数据：{json.dumps(paper, ensure_ascii=False)}\n"
             f"只处理 {relative} 下这一个版本；先读本地全文核验相关性。"
             "不相关返回 skipped 并解释理由，不生成假解读。相关则写 README.md，"
-            "含逐符号公式、Mermaid、作者创新与自身判断、实验局限、图像相对链接。"
+            "严格按技能正文模板：简洁题目、作者与原文核实的单位、arXiv版本及时间；"
+            "然后依次为中文摘要完整翻译、Key insight、方法管线、方法详解、简短实验。"
+            "方法详解结合组件、原图相对链接和逐符号关键公式，区分作者贡献与解读判断。"
+            "去掉一句话解释及顶部解读日期、来源列表、相关性审核、阅读核验范围；"
+            "证据与单位核验位置保留review.json，必要的原文章节和公式引用随方法说明。"
+            "HTML署名可能丢上标；单位对应不清时核对PDF/TeX，不能按邮箱或姓名猜。"
             "缺少全文时不能把摘要扩写成全文解读；应返回 waiting_source 说明来源不足。",
             f"paper-{paper['id']}")
+        review_path = folder / "review.json"
+        evidence = json.loads(
+            review_path.read_text("utf-8")) if review_path.exists() else {}
         if result["status"] == "completed":
-            verify_files(root, [f"{relative}/README.md"])
+            try:
+                verify_files(root, [f"{relative}/README.md"])
+                verify_paper_readme(folder)
+            except (OSError, ValueError) as error:
+                # 模型可能先写 done；验收失败必须撤回，否则下次准备会跳过该文。
+                configuration.atomic_json(
+                    review_path, {
+                        **evidence,
+                        "status": "needs_review",
+                        "reviewed_at": now.isoformat(),
+                        "validation_error": str(error),
+                    })
+                raise
             artifacts.append(f"{relative}/README.md")
             used += 1
             store.set_setting(day_key, str(used))
@@ -286,7 +351,8 @@ def _papers(root: Path, config: dict, store: Store, now: dt.datetime) -> dict:
         }[result["status"]]
         incomplete = incomplete or status == "needs_review"
         configuration.atomic_json(
-            folder / "review.json", {
+            review_path, {
+                **evidence,
                 "status": status,
                 "reviewed_at": now.isoformat(),
                 "summary": result["summary"],
@@ -369,16 +435,24 @@ def execute(root: Path, config: dict, store: Store, task: dict,
             personal.notify(config, "每日复盘等待来源", "请告诉我今天的记录在哪里。")
         return {
             "status": "waiting_source",
-            "summary": "请告诉我今天的记录在哪里。",
+            "summary": context.get("summary", "请告诉我今天的记录在哪里。"),
+            "source_errors": context.get("source_errors", []),
             "artifacts": [context["output"]]
         }
     result = codex(
         root, config, f"使用 $sp-daily-review，读取证据 {context['context']}，"
         f"生成 {context['output']}。日期为{day}，不是运行当天。"
-        "标明来源覆盖时间；把实际完成、讨论过、计划中分开。"
-        "聊天中的请求与助手承诺不自动构成完成证据。", f"review-{day}")
+        "这是给本人阅读的复盘，按重要目标聚合：今天做了什么重要事、结果或成果怎样，"
+        "以及接下来1–3件事。采用今天做了什么、还没收尾（可省略）、接下来三节。"
+        "过滤Clash连接、认证、缓存、命令、路径和工具流水账；除非影响核心成果，"
+        "才用一句话交代影响。自然措辞区分完成、待验证和计划，不写审计清单。"
+        "不虚构学习或个人事件，不复述system/tool消息，助手承诺不等于完成。"
+        "来源覆盖仅在文末写一行；errors/warnings非空时简短说明遗漏范围，"
+        "完整来源证据保留context，不把错误日志和逐项出处搬进正文。", f"review-{day}")
     if result["status"] == "completed":
         verify_files(root, [context["output"]])
+    result["review_source_fingerprint"] = context["source_fingerprint"]
+    result["review_date"] = str(day)
     return result
 
 
@@ -452,13 +526,15 @@ def dashboard(root: Path, config: dict, store: Store, now: dt.datetime) -> None:
     }
     tasks = store.export_tasks()
     for task in tasks:
-        counts[task["status"]] += 1
+        counts[task["status"]] = counts.get(task["status"], 0) + 1
     lines = [
         "# second proprio", "", f"更新时间：{now.isoformat()}", "",
         f"与 {config['relationship']['name']} 在一起第 "
         f"**{personal.relationship_days(config, now.date())} 天**。", "",
-        "- [课程入口](courses/README.md)", "- [项目使用说明](README.md)",
-        f"- [今天的关心记录](private/relationship/{now.date()}.md)", "", "## 任务状态", "",
+        f"- [课程入口]({config['paths']['courses']}/README.md)",
+        "- [项目使用说明](README.md)",
+        f"- [今天的关心记录]({config['paths']['private']}/relationship/"
+        f"{now.date()}.md)", "", "## 任务状态", "",
         json.dumps(counts, ensure_ascii=False), "", "## 最近结果与需要处理的事项", ""
     ]
     for task in tasks[-30:]:

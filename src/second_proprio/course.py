@@ -9,19 +9,13 @@ from pathlib import Path
 import re
 from zoneinfo import ZoneInfo
 
+from second_proprio import config as configuration
+
 
 def _today(config: dict) -> str:
     """返回配置时区中的当前日期。"""
     timezone = ZoneInfo(config.get("timezone", "Asia/Shanghai"))
     return datetime.datetime.now(timezone).date().isoformat()
-
-
-def _inside_root(root: Path, relative_path: str) -> Path:
-    """解析仓库内的相对路径，拒绝越过仓库边界。"""
-    path = (root / relative_path).resolve()
-    if not path.is_relative_to(root.resolve()):
-        raise ValueError(f"路径必须位于项目内：{relative_path}")
-    return path
 
 
 def _note_template(lesson_id: str) -> str:
@@ -59,7 +53,7 @@ def feedback_matches(content: str, previous: str | None) -> bool:
 
 def _read_hashes(root: Path, state_dir: str = ".state") -> dict:
     """读取已经确认消化的笔记摘要。"""
-    path = _inside_root(root, state_dir) / "course-feedback.json"
+    path = configuration.resolve_path(root, state_dir) / "course-feedback.json"
     if not path.exists():
         return {}
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -139,8 +133,10 @@ def prepare(root: Path,
     root = root.resolve()
     selected_lesson = lesson_id
     paths = config.get("paths", {})
-    course_path = _inside_root(root, paths.get("courses", "courses"))
-    private_path = _inside_root(root, paths.get("private", "private"))
+    course_path = configuration.resolve_path(root,
+                                             paths.get("courses", "courses"))
+    private_path = configuration.resolve_path(root,
+                                              paths.get("private", "private"))
     if config.get("course", {}).get("daily_new_lessons", 1) != 1:
         raise ValueError("当前课程约定每天最多生成一节。")
     syllabus_path = course_path / "syllabus.json"
@@ -154,8 +150,8 @@ def prepare(root: Path,
         if lesson_id in identifiers:
             raise ValueError(f"重复的章节标识：{lesson_id}")
         identifiers.add(lesson_id)
-        path = _inside_root(root,
-                            str(course_path.relative_to(root) / item["path"]))
+        path = configuration.resolve_path(
+            root, str(course_path.relative_to(root) / item["path"]))
         lessons.append({**item, "generated": _generated(item, path)})
     note_hashes, progress = _notes(root, private_path, lessons,
                                    paths.get("state", ".state"))
@@ -189,7 +185,7 @@ def prepare(root: Path,
         next_path = course_path / next_lesson["path"]
         expected_paths.append(str(next_path.relative_to(root)))
         if next_lesson.get("example"):
-            example = _inside_root(
+            example = configuration.resolve_path(
                 root,
                 str(course_path.relative_to(root) / next_lesson["example"]),
             )
@@ -261,7 +257,7 @@ def commit_feedback(
     """
     root = root.resolve()
     for relative, expected_hash in hashes.items():
-        note_path = _inside_root(root, relative)
+        note_path = configuration.resolve_path(root, relative)
         if note_path.parent.name != "notes" or note_path.suffix != ".md":
             raise ValueError(f"只接受课程笔记路径：{relative}")
         note_bytes = note_path.read_bytes()
@@ -285,15 +281,11 @@ def commit_feedback(
                 raise ValueError(f"反馈尚未更新：{feedback_relative}")
     saved = _read_hashes(root, state_dir)
     saved.update({
-        relative: feedback_hash(
-            _inside_root(root,
-                         relative).read_text("utf-8")) for relative in hashes
+        relative:
+            feedback_hash(
+                configuration.resolve_path(root, relative).read_text("utf-8"))
+        for relative in hashes
     })
-    state_path = _inside_root(root, state_dir) / "course-feedback.json"
-    state_path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = state_path.with_suffix(".tmp")
-    temporary.write_text(
-        json.dumps({"note_hashes": saved}, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    temporary.replace(state_path)
+    state_path = configuration.resolve_path(root,
+                                            state_dir) / "course-feedback.json"
+    configuration.atomic_json(state_path, {"note_hashes": saved})

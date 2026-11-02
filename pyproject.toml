@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "second-proprio"
-version = "0.2.0"
+version = "1.1.0"
 description = "个人学术与生活技能仓库"
 requires-python = ">=3.11"
 dependencies = ["jsonschema>=4.23,<5", "beautifulsoup4>=4.12,<5", "httpx>=0.27,<1", "pypdf>=5,<7"]

@@ -59,12 +59,20 @@ def call(root: Path,
         if len(line) > MAX_MESSAGE or not line.endswith(b"\n"):
             raise RpcError("protocol", "后台响应不完整或过大")
         response = json.loads(line)
+        if not isinstance(response, dict):
+            raise RpcError("protocol", "后台响应必须是对象")
         if response.get("id") != request["id"]:
             raise RpcError("protocol", "后台响应标识不匹配")
         if "error" in response:
             error = response["error"]
+            if not isinstance(error, dict) or not all(
+                    isinstance(error.get(key), str)
+                    for key in ("code", "message")):
+                raise RpcError("protocol", "后台错误响应格式不合法")
             raise RpcError(error["code"], error["message"],
                            error.get("details"))
+        if "result" not in response:
+            raise RpcError("protocol", "后台响应缺少结果")
         return response["result"]
     except (OSError, ValueError, KeyError) as error:
         raise RpcError("unavailable", "后台连接不可用，请在 App 中启动后台") from error

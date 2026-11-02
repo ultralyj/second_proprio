@@ -114,12 +114,88 @@ function mockRpc(
       };
       return handler(payload.method, payload.params);
     }
-    throw new Error(`Unexpected command ${command}`);
+    throw new Error(`意外的命令 ${command}`);
   });
 }
 beforeEach(() => vi.clearAllMocks());
-describe("document safety", () => {
-  it("saves with the original base hash and retains edits on a conflict", async () => {
+describe("正文版本保护", () => {
+  it("旧保存请求失败时仍将已自动保存的新输入作为最后草稿", async () => {
+    let failSave!: (reason: Error) => void;
+    const pending = new Promise<Document>((_, reject) => {
+      failSave = reject;
+    });
+    mockRpc((method) => {
+      if (method === "content.read" || method === "content.draft")
+        return document;
+      if (method === "content.save") return pending;
+      throw new Error(method);
+    });
+    render(<DocumentView path={document.path} notify={vi.fn()} />);
+    await userEvent.click(await screen.findByText("编辑"));
+    fireEvent.change(screen.getByLabelText("源码"), {
+      target: { value: "提交内容 A" },
+    });
+    await userEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.change(screen.getByLabelText("源码"), {
+      target: { value: "后续草稿 B" },
+    });
+    const latestDraft = {
+      method: "content.draft",
+      params: {
+        path: document.path,
+        content: "后续草稿 B",
+        base_hash: "base-a",
+      },
+    };
+    await waitFor(() =>
+      expect(mocked).toHaveBeenCalledWith("rpc", latestDraft),
+    );
+    await act(async () => failSave(new Error("保存请求失败")));
+    expect(screen.getByRole("alert")).toHaveTextContent("保存请求失败");
+    expect(screen.getByLabelText("源码")).toHaveValue("后续草稿 B");
+    expect(mocked).toHaveBeenLastCalledWith("rpc", latestDraft);
+  });
+  it("保存回包保留等待期间的新输入，并使用已保存版本作为下次基准", async () => {
+    let finishSave!: (value: Document) => void;
+    const pending = new Promise<Document>((resolve) => {
+      finishSave = resolve;
+    });
+    let saves = 0;
+    mockRpc((method, params) => {
+      if (method === "content.read" || method === "content.draft")
+        return document;
+      if (method === "content.save") {
+        saves += 1;
+        return saves === 1
+          ? pending
+          : { ...document, content: params.content, hash: "base-c" };
+      }
+      throw new Error(method);
+    });
+    render(<DocumentView path={document.path} notify={vi.fn()} />);
+    await userEvent.click(await screen.findByText("编辑"));
+    fireEvent.change(screen.getByLabelText("源码"), {
+      target: { value: "首次提交" },
+    });
+    await userEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.change(screen.getByLabelText("源码"), {
+      target: { value: "继续输入的草稿" },
+    });
+    await act(async () =>
+      finishSave({ ...document, content: "首次提交", hash: "base-b" }),
+    );
+    expect(screen.getByLabelText("源码")).toHaveValue("继续输入的草稿");
+    await userEvent.click(screen.getByRole("button", { name: "保存" }));
+    expect(mocked).toHaveBeenLastCalledWith("rpc", {
+      method: "content.save",
+      params: {
+        path: document.path,
+        content: "继续输入的草稿",
+        base_hash: "base-b",
+      },
+    });
+  });
+  it("按原始基准保存，冲突时保留编辑内容", async () => {
     mockRpc((method) => {
       if (method === "content.read") return document;
       if (method === "content.save")
@@ -156,7 +232,7 @@ describe("document safety", () => {
       },
     });
   });
-  it("routes Command-S to the focused note rather than the main document", async () => {
+  it("Command-S 仅保存获得焦点的笔记", async () => {
     mockRpc((method, params) => {
       if (method === "content.read") return { ...document, path: params.path };
       if (method === "content.save")
@@ -198,7 +274,7 @@ describe("document safety", () => {
     );
     expect(saves).toHaveLength(1);
   });
-  it("resumes a saved draft without submitting it as the published document", async () => {
+  it("恢复编辑草稿但不自动提交正文", async () => {
     mockRpc((method) => {
       if (method === "content.read")
         return {
@@ -221,7 +297,7 @@ describe("document safety", () => {
       ),
     ).toBe(false);
   });
-  it("compares an AI candidate and sends the document identity on acceptance", async () => {
+  it("比较候选并在采纳时提交正确的文档路径", async () => {
     const candidate = {
       id: "candidate-1",
       status: "waiting_review",
@@ -254,8 +330,72 @@ describe("document safety", () => {
     );
   });
 });
-describe("personal records and settings", () => {
-  it("can clear mood, note and action with explicit values", async () => {
+describe("私人记录与设置", () => {
+  it("快速切换关心日期时忽略旧日期的迟到响应", async () => {
+    const record = {
+      date: "2026-10-30",
+      name: "llq",
+      days: 974,
+      mood: null,
+      note: "今天",
+      actions: [],
+      history_dates: [],
+    };
+    let finishOld!: (value: typeof record) => void;
+    const pending = new Promise<typeof record>((resolve) => {
+      finishOld = resolve;
+    });
+    mockRpc((method, params) => {
+      if (method !== "relationship.get") throw new Error(method);
+      if (params.date === "2026-10-29") return pending;
+      return params.date
+        ? { ...record, date: params.date, note: "当前日期" }
+        : record;
+    });
+    render(<Care notify={vi.fn()} />);
+    await screen.findByDisplayValue("今天");
+    fireEvent.change(screen.getByLabelText("查看日期"), {
+      target: { value: "2026-10-29" },
+    });
+    fireEvent.change(screen.getByLabelText("查看日期"), {
+      target: { value: "2026-10-28" },
+    });
+    await screen.findByDisplayValue("当前日期");
+    await act(async () =>
+      finishOld({ ...record, date: "2026-10-29", note: "迟到记录" }),
+    );
+    expect(screen.getByLabelText("查看日期")).toHaveValue("2026-10-28");
+    expect(screen.getByLabelText("备注")).toHaveValue("当前日期");
+  });
+  it("关心记录保存期间继续输入的备注不会被回包覆盖", async () => {
+    const record = {
+      date: "2026-10-30",
+      name: "llq",
+      days: 974,
+      mood: null,
+      note: "原记录",
+      actions: [],
+      history_dates: [],
+    };
+    let finishSave!: (value: typeof record) => void;
+    const pending = new Promise<typeof record>((resolve) => {
+      finishSave = resolve;
+    });
+    mockRpc((method) => (method === "relationship.get" ? record : pending));
+    render(<Care notify={vi.fn()} />);
+    await screen.findByDisplayValue("原记录");
+    fireEvent.change(screen.getByLabelText("备注"), {
+      target: { value: "首次修改" },
+    });
+    await userEvent.click(screen.getByRole("button", { name: "保存记录" }));
+    fireEvent.change(screen.getByLabelText("备注"), {
+      target: { value: "继续写下的小事" },
+    });
+    await act(async () => finishSave({ ...record, note: "首次修改" }));
+    expect(screen.getByLabelText("备注")).toHaveValue("继续写下的小事");
+    expect(screen.getByRole("button", { name: "保存记录" })).toBeEnabled();
+  });
+  it("使用明确空值清空心情、备注与行动", async () => {
     const record = {
       date: "2026-10-30",
       name: "llq",
@@ -284,7 +424,7 @@ describe("personal records and settings", () => {
       params: { date: "2026-10-30", mood: null, note: "", actions: [] },
     });
   });
-  it("saves business changes with optimistic config revision", async () => {
+  it("按配置基准版本提交业务修改", async () => {
     mockRpc((method, params) =>
       method === "config.get"
         ? { config, revision: "r1", sync: { status: "disabled" } }
@@ -309,8 +449,8 @@ describe("personal records and settings", () => {
     expect(screen.getByText("服务器未启用")).toBeInTheDocument();
   });
 });
-describe("configuration text lists", () => {
-  it("enables save while multiline keywords remain focused and preserves line entry", async () => {
+describe("配置文本列表", () => {
+  it("关键词仍获得焦点时可保存，且保留换行输入", async () => {
     mockRpc((method, params) => {
       if (method === "config.get") return { config, revision: "v1", sync: {} };
       if (method === "config.save")
@@ -334,8 +474,8 @@ describe("configuration text lists", () => {
     ).toEqual(["robot", "dexterous"]);
   });
 });
-describe("configuration server confirmation", () => {
-  it("waits for the current server revision and refreshes without replacing the form draft", async () => {
+describe("服务器配置同步确认", () => {
+  it("等待当前服务器版本确认，刷新不覆盖表单草稿", async () => {
     vi.useFakeTimers();
     try {
       let effective = {
@@ -400,7 +540,7 @@ describe("configuration server confirmation", () => {
       vi.useRealTimers();
     }
   });
-  it("shows failed synchronization and the retained server config without claiming local save failed", async () => {
+  it("同步失败时显示服务器保留配置，不误报本机保存失败", async () => {
     const enabled = { ...config, server: { ...config.server, enabled: true } };
     mockRpc((method, params) => {
       if (method === "config.get")
@@ -445,8 +585,8 @@ describe("configuration server confirmation", () => {
     expect(screen.queryByText("服务器已同步")).not.toBeInTheDocument();
   });
 });
-describe("task control and connection", () => {
-  it("retries exactly one selected task", async () => {
+describe("任务控制与连接", () => {
+  it("只重试选中的单个任务", async () => {
     const tasks = [
       {
         id: "first",
@@ -473,7 +613,7 @@ describe("task control and connection", () => {
       params: { id: "first" },
     });
   });
-  it("shows an honest disconnected screen when there is no local daemon", async () => {
+  it("后台未运行时如实显示未连接界面", async () => {
     mocked.mockRejectedValue("本机后台尚未启动");
     render(<App />);
     expect(await screen.findByRole("alert")).toHaveTextContent(

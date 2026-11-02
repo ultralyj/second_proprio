@@ -1,0 +1,39 @@
+.paper-rating {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 9px 28px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.paper-rating [role="group"] {
+  display: flex;
+  gap: 2px;
+}
+.paper-rating .rating-star {
+  width: 28px;
+  height: 28px;
+  transition:
+    color 140ms ease,
+    transform 140ms ease;
+}
+.paper-rating .rating-star:hover {
+  transform: translateY(-1px);
+}
+.paper-rating .rating-star.filled {
+  color: #b88127;
+}
+.paper-rating .rating-star.filled svg {
+  fill: currentColor;
+}
+.paper-rating .rating-error {
+  color: var(--danger);
+}
+@media (prefers-reduced-motion: reduce) {
+  .paper-rating .rating-star,
+  .paper-rating .rating-star:hover {
+    transition: none;
+    transform: none;
+  }
+}

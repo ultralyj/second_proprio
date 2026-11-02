@@ -10,6 +10,7 @@
 | 02 | [行为克隆：低监督误差为何不等于可靠控制](lessons/02-bc-shift.md) | 已生成 |
 | 03 | [DAgger：让专家标注学习者真正遇到的状态](lessons/03-dagger.md) | 已生成 |
 | 04 | [回报、价值与 Bellman 递推](lessons/04-returns-values.md) | 已生成 |
+| 05 | [从 TD 到 Q-learning：目标值与自举](lessons/05-value-learning.md) | 已生成 |
 
 本索引只展示已生成章节；完整课程计划保存在机器可读目录 [syllabus.json](syllabus.json)。后续研究进展在写对应章节时检索原论文，注明资料截止日期，不把尚未核验的内容写成“最新结论”。
 
@@ -31,6 +32,7 @@ uv run python courses/examples/shared_model.py
 uv run python courses/examples/bc_shift.py
 uv run python courses/examples/dagger.py
 uv run --extra learning python courses/examples/returns_values.py
+uv run --no-project --with torch python courses/examples/value_learning.py
 ```
 
 示例使用 CPU 和固定随机种子，不下载数据集。它们用于理解核心组件；维度与动力学刻意简化，数值结果不能作为真实灵巧手性能结论。Python 代码按 Google 风格编写，注释和文档说明使用中文。
@@ -39,3 +41,4 @@ uv run --extra learning python courses/examples/returns_values.py
 
 - 2026-10-29：建立学习路线和前三节；来源核验包含 Ross 与 Bagnell（2010）、Ross 等（2011）、Ho 与 Ermon（2016）。
 - 2026-10-30：生成第 04 节《回报、价值与 Bellman 递推》；CPU 示例已运行并用线性方程解核对，来源核验包含 OpenAI Spinning Up 官方文档与源码、Gymnasium 官方文档。
+- 2026-11-02：生成第 05 节《从 TD 到 Q-learning：目标值与自举》；CPU 示例已核对解析 Q 表、终止掩码与贪心回报，来源核验包含 Sutton（1988）、Watkins 与 Dayan（1992）原论文及 PyTorch、Gymnasium 官方资料。

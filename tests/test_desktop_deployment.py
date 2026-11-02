@@ -9,13 +9,17 @@ import subprocess
 import pytest
 
 from second_proprio import desktop_deployment as deployment
+from second_proprio import rpc
 
 
 @pytest.fixture(name="workspace")
 def fixture_workspace(tmp_path: Path) -> Path:
-    """准备与正式配置结构一致的临时工作区。"""
+    """从公开配置模板准备临时工作区，不复制真实设置。"""
     root = tmp_path / "workspace"
-    shutil.copytree(Path(__file__).parents[1] / "config", root / "config")
+    (root / "config").mkdir(parents=True)
+    source = Path(__file__).parents[1] / "config"
+    for name in ("schema.json", "settings.example.json"):
+        shutil.copyfile(source / name, root / "config" / name)
     return root
 
 
@@ -115,11 +119,12 @@ def test_stop_waits_for_dying_socket_to_close(
         workspace: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """关闭请求之后不能把仍在退出的服务误判成下一次启动成功。"""
     calls = []
+    monkeypatch.setattr(Path, "home", lambda: workspace.parent)
 
     def fake_request(_root, method, _params=None):
         calls.append(method)
-        if method == "tasks.list":
-            return {"tasks": []}
+        if method == "system.stop":
+            return {"stopping": True}
         if calls.count("system.status") == 1:
             return {"running": True, "stopping": True}
         raise ConnectionRefusedError()
@@ -130,4 +135,42 @@ def test_stop_waits_for_dying_socket_to_close(
         lambda *args: subprocess.CompletedProcess(args, 0, "", ""))
     result = deployment.stop(workspace)
     assert result["status"] == "stopped"
+    assert calls[0] == "system.stop"
     assert calls.count("system.status") == 2
+
+
+@pytest.mark.parametrize("code", ["active_task", "unavailable"])
+def test_stop_keeps_loaded_service_when_idle_cannot_be_confirmed(
+        workspace: Path, monkeypatch: pytest.MonkeyPatch, code: str) -> None:
+    """领取任务或连接失效时，停止接口不能绕过后台确认强行卸载。"""
+    monkeypatch.setattr(Path, "home", lambda: workspace.parent)
+    calls = []
+
+    def refuse(*_args, **_kwargs):
+        raise rpc.RpcError(code, "尚不能确认空闲")
+
+    def launchctl(*args):
+        calls.append(args)
+        return subprocess.CompletedProcess(args, 0, "", "")
+
+    monkeypatch.setattr(deployment, "request", refuse)
+    monkeypatch.setattr(deployment, "_launchctl", launchctl)
+    assert deployment.stop(workspace)["status"] == "error"
+    assert all(args[0] == "print" for args in calls)
+
+
+def test_stop_does_not_touch_another_workspace(
+        workspace: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """错误工作区的停止操作在任何请求或服务命令之前被拒绝。"""
+    monkeypatch.setattr(Path, "home", lambda: workspace.parent)
+    target = (workspace.parent / "Library/LaunchAgents" /
+              f"{deployment.LABEL}.plist")
+    target.parent.mkdir(parents=True)
+    target.write_bytes(plistlib.dumps({"WorkingDirectory": "/other"}))
+
+    def unexpected(*_args, **_kwargs):
+        pytest.fail("不应操作其他工作区的服务")
+
+    monkeypatch.setattr(deployment, "request", unexpected)
+    monkeypatch.setattr(deployment, "_launchctl", unexpected)
+    assert deployment.stop(workspace)["status"] == "error"

@@ -1,0 +1,51 @@
+[
+  {
+    "figure_id": "S3.F2",
+    "caption": "Fig. 2 : Overview of HandMimicX . (a1) Given an RGB-D egocentric video, we reconstruct the manipulated object and hand motion, and then align both reconstructions with the depth observations. (a2) We extract the hand-object interaction state at the first contact frame as the interaction prior $\\boldsymbol{g}_{\\mathrm{hand}}^{*}$ for policy learning. (b1) We train an object-centric teacher policy $\\boldsymbol{\\pi}^{\\mathrm{T}}$ using PPO with SAPG. A correspondence-aware encoder maps the current and goal object point clouds to a geometric latent representation, which is concatenated with $\\boldsymbol{o}_{t}^{\\mathrm{prop}}$ , $\\boldsymbol{a}_{t-1}$ and $\\boldsymbol{d}^{\\text{h,o}}$ to form the observation $\\boldsymbol{o}_{t}^{\\mathrm{T}}$ and then fed into the actor and critic MLPs.\n(b2) During training, the teacher $\\boldsymbol{\\pi}^{\\mathrm{T}}$ learns to manipulate the object and track arbitrary goal poses. (b3) We use DAgger to distill the teacher $\\boldsymbol{\\pi}^{\\mathrm{T}}$ into a student $\\boldsymbol{\\pi}^{\\mathrm{S}}$ under partial observations $\\boldsymbol{o}_{t}^{\\mathrm{S}}$ .\nFinally, (c) we deploy the distilled student policy on the real robot to execute diverse trajectories, extending beyond the original video demonstration.",
+    "source_url": "https://arxiv.org/html/2610.41336v1/figs/pipeline_handmimicx_v6.jpg",
+    "path": "figures/figure-01-01.jpg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S3.F3",
+    "caption": "Fig. 3 : Visualization of contact and hand pose retargeting. We use HACO to estimate contact regions on the MANO hand mesh and transfer them to the robotic hand for contact retargeting. Hand pose retargeting is performed using [ 41 ] .",
+    "source_url": "https://arxiv.org/html/2610.41336v1/figs/contact_retarget_v3.jpg",
+    "path": "figures/figure-02-01.jpg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S3.F4",
+    "caption": "Fig. 4 : Visualization of sampled objects for policy pretraining. The collection spans diverse categories, including everyday objects and tools, with varied geometries.",
+    "source_url": "https://arxiv.org/html/2610.41336v1/pretrain_object.png",
+    "path": "figures/figure-03-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S4.F5",
+    "caption": "Fig. 5 : Visualization of hand–object interaction poses from SimToolReal, Dex4D, and HandMimicX. Our HandMimicX produces the most anatomically natural hand poses.",
+    "source_url": "https://arxiv.org/html/2610.41336v1/hand_pose_unified.png",
+    "path": "figures/figure-05-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S4.F6",
+    "caption": "Fig. 6 : Visualization of real-world execution with HandMimicX. Object trajectories extracted from human demonstration videos serve as targets for robot execution (please refer to the accompanying video for further visualizations).",
+    "source_url": "https://arxiv.org/html/2610.41336v1/real_world.png",
+    "path": "figures/figure-08-01.png",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S4.F7",
+    "caption": "Fig. 7 : Real-world hardware setup and objects used in our experiments. The system comprises a 6-DoF UR5 robotic arm equipped with a 20-DoF Wuji hand and a single side-mounted Intel RealSense D435 stereo camera.",
+    "source_url": "https://arxiv.org/html/2610.41336v1/figs/setup_v3.jpg",
+    "path": "figures/figure-09-01.jpg",
+    "status": "saved"
+  },
+  {
+    "figure_id": "S4.F8",
+    "caption": "Fig. 8 : Skill transfer from a single object trajectory extracted from egocentric video. Panels (a) and (b) show executions from different initial object positions and orientations. Panel (c) visualizes the 128 canonical surface keypoints used to represent the object state for the actor.",
+    "source_url": "https://arxiv.org/html/2610.41336v1/figs/execution_process_one2many_v2.jpg",
+    "path": "figures/figure-10-01.jpg",
+    "status": "saved"
+  }
+]

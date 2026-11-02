@@ -7,9 +7,9 @@ import logging
 from pathlib import Path
 import subprocess
 import sys
-from zoneinfo import ZoneInfo
 
 from second_proprio.config import atomic_json, resolve_path
+from second_proprio import review_sources
 
 
 def notify(config: dict, title: str, message: str) -> bool:
@@ -115,19 +115,8 @@ def care(root: Path, config: dict, now: dt.datetime) -> dict:
     return {"artifacts": [str(output.relative_to(root))], "summary": prompt}
 
 
-def _timestamp(value: object) -> str | None:
-    """将导出时间转换为有时区 ISO 字符串。"""
-    try:
-        if isinstance(value, (int, float)):
-            return dt.datetime.fromtimestamp(value, dt.timezone.utc).isoformat()
-        parsed = dt.datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        return parsed.isoformat() if parsed.tzinfo else None
-    except (ValueError, OverflowError, OSError):
-        return None
-
-
 def import_chat(root: Path, config: dict, source: Path) -> Path:
-    """导入快照或 ChatGPT conversations.json，只保留当前分支文本。
+    """将用户选择的聊天导出规范化到应用私密目录，保留消息原日期。
 
     Args:
         root: 项目根目录。
@@ -135,96 +124,68 @@ def import_chat(root: Path, config: dict, source: Path) -> Path:
         source: 用户明确提供的 JSON 文件。
 
     Returns:
-        仅在本机保存的规范化记录路径。
+        应用私密目录中的规范化快照路径。
 
     Raises:
-        ValueError: 没有可用的带时间消息或格式不支持。
+        ValueError: 没有可用的带时间消息或 JSON 格式不支持。
     """
-    raw = json.loads(source.read_text("utf-8"))
-    messages = []
-    if isinstance(raw, dict) and "messages" in raw:
-        messages = raw["messages"]
-    else:
-        conversations = raw if isinstance(raw, list) else [raw]
-        for conversation in conversations:
-            mapping = conversation.get("mapping", {})
-            node = conversation.get("current_node")
-            branch = []
-            seen = set()
-            while node and node in mapping and node not in seen:
-                seen.add(node)
-                entry = mapping[node]
-                branch.append(entry)
-                node = entry.get("parent")
-            if not branch:
-                branch = list(mapping.values())
-            for entry in reversed(branch):
-                message = entry.get("message") or {}
-                parts = message.get("content", {}).get("parts", [])
-                messages.append({
-                    "timestamp": message.get("create_time"),
-                    "role": message.get("author", {}).get("role"),
-                    "text": "\n".join(p for p in parts if isinstance(p, str)),
-                    "conversation_id": conversation.get("id", "unknown"),
-                    "title": conversation.get("title", "未命名聊天"),
-                })
-    clean = []
-    for message in messages:
-        stamp = _timestamp(message.get("timestamp"))
-        if stamp and message.get("role") in {"user", "assistant"}:
-            if isinstance(message.get("text"), str) and message["text"].strip():
-                clean.append({
-                    key: message.get(key, "")
-                    for key in ("role", "text", "conversation_id", "title")
-                } | {"timestamp": stamp})
-    if not clean:
+    messages, warnings = review_sources.read_file(source)
+    if not messages:
         raise ValueError(
             "没有可用的带时区/时间戳聊天文本；请提供 conversations.json 或 messages 快照")
-    digest = hashlib.sha256(source.read_bytes()).hexdigest()[:16]
-    target = resolve_path(root, config["review"]["source_directory"])
-    target = target / f"chat-{digest}.json"
-    atomic_json(target, {"source": source.name, "messages": clean})
+    with source.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()[:16]
+    target = review_sources.import_directory(root,
+                                             config) / f"chat-{digest}.json"
+    atomic_json(target, {
+        "source": source.name,
+        "messages": messages,
+        "warnings": warnings
+    })
     return target
 
 
 def review_context(root: Path, config: dict, day: dt.date) -> dict:
-    """提取当天证据，记录可见范围，缺来源时不编造总结。"""
-    folder = resolve_path(root, config["review"]["source_directory"])
-    messages = []
-    sources = []
-    seen = set()
-    for path in sorted(folder.glob("*.json")):
-        data = json.loads(path.read_text("utf-8"))
-        selected = []
-        for message in data.get("messages", []):
-            stamp = dt.datetime.fromisoformat(message["timestamp"])
-            if stamp.astimezone(ZoneInfo(config["timezone"])).date() == day:
-                key = (message.get("conversation_id"), message["timestamp"],
-                       message.get("role"), message.get("text"))
-                if key not in seen:
-                    seen.add(key)
-                    selected.append(message)
-        if selected:
-            sources.append(str(path.relative_to(root)))
-            messages.extend(selected)
-    output = resolve_path(root, config["paths"]["private"])
-    output = output / "daily" / f"{day}.md"
+    """读取配置目录当天证据，保留覆盖范围与读取问题。"""
+    evidence = review_sources.scan(root, config, day)
+    # 隔离工作区快照附带父进程核验的原始来源位置与读取问题。
+    snapshot = resolve_path(root,
+                            config["paths"]["state"]) / "review-source.json"
+    if snapshot.exists():
+        origin = json.loads(snapshot.read_text("utf-8"))
+        fingerprint = origin.get("source_fingerprint")
+        if fingerprint and fingerprint != evidence["source_fingerprint"]:
+            raise ValueError("复盘快照与已验证的来源指纹不一致，请重新准备任务")
+        for key in ("sources", "errors", "warnings", "directory",
+                    "source_kinds"):
+            evidence[key] = origin.get(key, evidence[key])
+    output = resolve_path(root,
+                          config["paths"]["private"]) / "daily" / f"{day}.md"
     output.parent.mkdir(parents=True, exist_ok=True)
-    if not messages:
+    summary = "请告诉我今天的记录在哪里。"
+    if evidence["errors"]:
+        issues = "；".join(f"{item['source']}：{item['message']}"
+                          for item in evidence["errors"][:3])
+        summary += " 来源读取问题：" + issues
+    if not evidence["messages"]:
         if not output.exists():
-            output.write_text(f"# {day} 每日复盘\n\n状态：等待来源。\n\n"
-                              "请告诉我今天的记录在哪里。\n", "utf-8")
+            output.write_text(f"# {day} 每日复盘\n\n状态：等待来源。\n\n{summary}\n",
+                              "utf-8")
         return {
             "status": "waiting_source",
-            "output": str(output.relative_to(root))
+            "output": str(output.relative_to(root)),
+            "summary": summary,
+            "source_errors": evidence["errors"],
+            "source_fingerprint": evidence["source_fingerprint"]
         }
-    evidence = {"date": str(day), "sources": sources, "messages": messages}
-    context = resolve_path(root, config["paths"]["private"])
-    context = context / "review-context" / f"{day}.json"
+    context = resolve_path(
+        root, config["paths"]["private"]) / "review-context" / f"{day}.json"
     atomic_json(context, evidence)
     return {
         "status": "ready",
         "context": str(context.relative_to(root)),
         "output": str(output.relative_to(root)),
-        "messages": len(messages)
+        "messages": len(evidence["messages"]),
+        "source_fingerprint": evidence["source_fingerprint"],
+        "source_errors": evidence["errors"]
     }

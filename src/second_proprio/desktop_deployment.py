@@ -13,18 +13,18 @@ from pathlib import Path
 import plistlib
 import shlex
 import shutil
-import socket
 import sqlite3
 import subprocess
 import sys
 import time
 from typing import Iterator
 
+from second_proprio import __version__ as VERSION
 from second_proprio import config as configuration
+from second_proprio import rpc
 
 LABEL = "com.second-proprio.desktop-service"
 LEGACY_LABEL = "com.second-proprio.worker"
-VERSION = "0.2.0"
 
 
 def support_directory() -> Path:
@@ -192,19 +192,11 @@ def apply_login_policy(root: Path, enabled: bool) -> dict:
 
 
 def request(root: Path, method: str, params: dict | None = None) -> dict:
-    """发送仅用于部署检查的短请求。"""
-    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as stream:
-        stream.settimeout(5)
-        stream.connect(str(_state(root) / "desktop.sock"))
-        stream.sendall((json.dumps({
-            "id": "installer",
-            "method": method,
-            "params": params or {}
-        }) + "\n").encode())
-        response = json.loads(stream.makefile("rb").readline(2 * 1024 * 1024))
-    if "error" in response:
-        raise RuntimeError(str(response["error"]))
-    return response["result"]
+    """复用公共协议发送部署短请求，拒绝非对象响应。"""
+    response = rpc.call(root, method, params, timeout=5)
+    if not isinstance(response, dict):
+        raise rpc.RpcError("protocol", "部署接口响应必须是对象")
+    return response
 
 
 def wait_until_disconnected(root: Path) -> bool:
@@ -243,7 +235,20 @@ def rollback_service(root: Path, backup: Path, target: Path) -> dict:
 
 
 def start(root: Path, app_executable: Path) -> dict:
-    """部署或启动服务；旧任务未结束时返回可显示的等待状态。"""
+    """部署或连接后台；旧任务未结束时返回等待状态。
+
+    Args:
+        root: 现有资料所在的工作区。
+        app_executable: 已安装 App 的无窗口通知入口。
+
+    Returns:
+        启动结果、服务状态或失败原因，迁移时包含备份位置。
+
+    Raises:
+        ValueError: App 入口不存在或运行时资源不完整。
+        RuntimeError: 未从打包运行时调用，或同名服务属于其他工作区。
+        OSError: 备份、安装运行时或启动服务时发生系统错误。
+    """
     root = root.resolve()
     config = configuration.load(root)
     app_executable = app_executable.resolve()
@@ -338,22 +343,32 @@ def start(root: Path, app_executable: Path) -> dict:
 
 
 def stop(root: Path) -> dict:
-    """当前任务结束后停用服务，保留任务与数据。"""
-    try:
-        tasks = request(root, "tasks.list").get("tasks", [])
-        if any(
-                task.get("status") in {"running", "cancel_requested"}
-                for task in tasks):
-            return {"status": "error", "message": "请先完成或取消当前任务，再停止后台。"}
-    except (OSError, ValueError, RuntimeError):
-        pass
+    """请求后台原子确认空闲并退出，再停用登录服务。
+
+    Args:
+        root: 被停止服务所属的工作区。
+
+    Returns:
+        停止结果；有活动任务、归属不符或无法确认空闲时返回错误。
+    """
+    root = root.resolve()
+    target = Path.home() / "Library/LaunchAgents" / f"{LABEL}.plist"
+    if target.exists() and plistlib.loads(
+            target.read_bytes()).get("WorkingDirectory") != str(root):
+        return {"status": "error", "message": "同名后台服务属于另一个工作区，未停止。"}
     domain = f"gui/{os.getuid()}/{LABEL}"
+    try:
+        # 同一事件循环确认没有任务并停止领取，避免先查询再卸载的竞态。
+        request(root, "system.stop", {"cancel_current": False})
+    except (OSError, ValueError, RuntimeError) as error:
+        if _launchctl("print", domain).returncode == 0:
+            return {"status": "error", "message": f"未停止后台：{error}"}
+    if not wait_until_disconnected(root):
+        return {"status": "error", "message": "后台尚未完全退出，请查看日志。"}
     stopped = _launchctl("bootout", domain)
     if stopped.returncode and _launchctl("print", domain).returncode == 0:
         return {"status": "error", "message": stopped.stderr.strip()}
     _launchctl("disable", domain)
-    if not wait_until_disconnected(root):
-        return {"status": "error", "message": "后台尚未完全退出，请查看日志。"}
     return {"status": "stopped", "message": "后台已停止，记录和任务均保留。"}
 
 

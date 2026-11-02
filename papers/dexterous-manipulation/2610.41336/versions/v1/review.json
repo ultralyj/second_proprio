@@ -1,0 +1,255 @@
+{
+  "status": "done",
+  "reviewed_at": "2026-11-02T13:01:29.859250+08:00",
+  "paper_id": "2610.41336",
+  "version": 1,
+  "topic_id": "dexterous-manipulation",
+  "semantic_review": "relevant",
+  "reason": "全文研究从第一人称 RGB-D 人类示范获取 UR5 与 20 自由度 Wuji 手的灵巧操作技能，核心为物体目标条件强化学习、手物交互先验、对应点编码及教师学生迁移；包含八项灵巧操作的仿真和真机实验，与配置中的灵巧手与操作主题高度相关。",
+  "sources": [
+    {
+      "type": "metadata",
+      "path": "metadata.json",
+      "sha256": "3b5c7fdede9ecb24e47551f7c9253c620053a7983f369983a2989ca0515a11e9",
+      "version_verified": true,
+      "published_utc": "2026-10-30T06:51:27Z",
+      "display_time": "2026-10-30 14:51:27 Asia/Shanghai (UTC+08:00)"
+    },
+    {
+      "type": "html_full_text",
+      "url": "https://arxiv.org/html/2610.41336v1",
+      "path": "source.html",
+      "sha256": "bfb35a58c62819f97d0437c354fdeb1890fe05c8da750f30f45b89821277dffc",
+      "text_path": "source.txt",
+      "text_sha256": "14470a173c109d8808b25fee756f5e481dfdfd613f9af74c777092f71e80dbd1"
+    },
+    {
+      "type": "official_pdf",
+      "url": "https://arxiv.org/pdf/2610.41336v1",
+      "sha256": "4f09b7874049d4d76f49e92ee62e06023f28fced1d60cb42c44d72aa8e6c1a39",
+      "pages": 9,
+      "verification": "官方 PDF 已下载并提取文本；视觉核对第1、4、5、6页。PDF仅用于临时核验，未改写原文缓存。"
+    },
+    {
+      "type": "figure_manifest",
+      "path": "figures.json",
+      "sha256": "7ad2d28aff8130eef950109be248d8576a8edba0da95905b0ed0c331660b2d40"
+    }
+  ],
+  "affiliation_evidence": {
+    "association_verified": true,
+    "locators": [
+      "PDF 第1页作者上标、机构编号及页脚作者注记（已视觉核验）",
+      "source.html:210–218，.ltx_authors，#id3.1.1 至 #id3.4.1、#id4.1"
+    ],
+    "institutions": {
+      "1": "Tsinghua University",
+      "2": "TsingTec",
+      "3": "MeiTuan",
+      "4": "The Chinese University of Hong Kong, Shenzhen",
+      "5": "NVIDIA"
+    },
+    "authors": [
+      {
+        "name": "Zihan Gao",
+        "affiliation_ids": [
+          1,
+          2,
+          3
+        ],
+        "role": "co-first author"
+      },
+      {
+        "name": "Yufei Liu",
+        "affiliation_ids": [
+          2,
+          4
+        ],
+        "role": "co-first author"
+      },
+      {
+        "name": "Yuhong Zhang",
+        "affiliation_ids": [
+          1,
+          2
+        ],
+        "role": "project lead"
+      },
+      {
+        "name": "Zhen Yu",
+        "affiliation_ids": [
+          2
+        ]
+      },
+      {
+        "name": "Xinhao Huang",
+        "affiliation_ids": [
+          1,
+          2
+        ]
+      },
+      {
+        "name": "Zhinan You",
+        "affiliation_ids": [
+          2
+        ]
+      },
+      {
+        "name": "Kai W. Ho",
+        "affiliation_ids": [
+          5
+        ]
+      },
+      {
+        "name": "Zipeng Ye",
+        "affiliation_ids": [
+          3
+        ],
+        "role": "corresponding author"
+      },
+      {
+        "name": "Peng Jiao",
+        "affiliation_ids": [
+          1,
+          2
+        ]
+      },
+      {
+        "name": "Haoqian Wang",
+        "affiliation_ids": [
+          1
+        ],
+        "role": "corresponding author"
+      }
+    ],
+    "note": "准备阶段 author_blocks 为空，但原 HTML 实际保留完整上标；已对照 PDF 确认，未按姓名或邮箱推断机构。"
+  },
+  "coverage": {
+    "full_text_read": true,
+    "local_text": "摘要、I 引言、II 相关工作、III 方法、IV 实验、V 结论、VI 局限及参考文献；不存在仅以摘要扩写的情况。",
+    "pdf_text_crosscheck": "第1页署名及摘要；第3页重建、图2/3；第4页式1–6；第5页训练、蒸馏式7、评测协议；第6页表I–III及真机部署；第7页泛化与局限。",
+    "pdf_visual_pages": [
+      1,
+      4,
+      5,
+      6
+    ],
+    "prior_versions": "该论文 versions 目录仅有 v1，无旧版差异可比较。",
+    "not_reviewed": [
+      "项目网页内容及代码开放状态",
+      "伴随视频",
+      "代码复现或重新训练"
+    ],
+    "figure_scope": "本地已有7张HTML原图；正文引用5张。PDF图1为概览补充图，未新增提取；正文核心方法图2完整可用。"
+  },
+  "evidence": [
+    {
+      "claim": "物体几何与首次接触先验用于学习，完整示范物体轨迹用于真实执行参考而非直接训练监督",
+      "locator": "§III-B2；PDF第3页；HTML #S3"
+    },
+    {
+      "claim": "10个深度锚点、仅平移优化及Huber平方距离输入",
+      "locator": "§III-B2；PDF第3–4页，式(1)；HTML #S3.E1"
+    },
+    {
+      "claim": "128个物体表面点、共享PointNet、双向交叉注意力与26维动作",
+      "locator": "§III-C1；PDF第4页，式(2)；HTML #S3.E2"
+    },
+    {
+      "claim": "总奖励、区域接触、手掌局部手势向量和指数奖励",
+      "locator": "§III-C1；PDF第4页，式(3)–(6)；HTML #S3.E3 至 #S3.E6"
+    },
+    {
+      "claim": "超过3200物体、每物体数百参考姿态、30K/10K迭代、4096环境及四块SAPG",
+      "locator": "§III-C1 Training Strategy；PDF第5页；图2标注四块各1024环境"
+    },
+    {
+      "claim": "DAgger教师学生动作平方误差，学生剔除指物距离与接触",
+      "locator": "§III-C2；PDF第5页，式(7)；图2(b3)；HTML #S3.E7"
+    },
+    {
+      "claim": "仿真成功需5个路点全到达，4096环境；平均57.3/66.8/85.4%",
+      "locator": "§IV-B；PDF第5–6页，表I；HTML #S4.T1"
+    },
+    {
+      "claim": "去姿态先验75.1%、去对应78.3%、去预训练73.3%，完整85.4%",
+      "locator": "PDF第6页表II；HTML #S4.T2"
+    },
+    {
+      "claim": "真机每任务10次、仿射变换示范轨迹；8、7、7、6、7、6、8、8次成功",
+      "locator": "§IV-C；PDF第6–7页，表III；HTML #S4.T3"
+    },
+    {
+      "claim": "自然手姿仅定性展示；重建误差、离散接触和跨本体/双手局限",
+      "locator": "图5与§IV-B；PDF第5页；§VI，PDF第7页"
+    }
+  ],
+  "numeric_checks": {
+    "tables_crosschecked_with_pdf": [
+      "I",
+      "II",
+      "III"
+    ],
+    "real_trials": 80,
+    "real_successes": 57,
+    "real_percent_exact": 71.25,
+    "real_percent_reported": 71.3,
+    "pretraining_gain_percentage_points": 12.1,
+    "interpretation_note": "原文12.1%按85.4−73.3应解释为12.1个百分点；叠碗去先验76.6高于完整75.2，未宣称所有任务单调改善。"
+  },
+  "unresolved_gaps": [
+    {
+      "type": "paper_reporting_limit",
+      "detail": "原文未列奖励权重、接触阈值epsilon、gesture beta、Huber参数及完整approach/relative/track奖励表达式；正文明确保留这些缺失。",
+      "blocks_review_completion": false
+    },
+    {
+      "type": "evaluation_reporting_limit",
+      "detail": "未给出路点到达位置/角度容差、统一数值化真机成功容差、随机种子、方差或置信区间；真机无基线对照，自然性仅定性图。",
+      "blocks_review_completion": false
+    },
+    {
+      "type": "implementation_reporting_limit",
+      "detail": "动作控制语义、编码特征宽度和池化、DAgger聚合轮次等未完整展开；未自行补写配置或声称复现。",
+      "blocks_review_completion": false
+    }
+  ],
+  "validation": {
+    "template_section_order": [
+      "基本信息",
+      "中文摘要",
+      "Key insight",
+      "方法管线",
+      "方法详解",
+      "实验"
+    ],
+    "top_process_audit_blocks_absent": true,
+    "local_markdown_images_exist": true,
+    "referenced_image_count": 5,
+    "core_figure_viewed": "figures/figure-01-01.jpg（原文图2），确认内容为本论文方法总图",
+    "equations": {
+      "count": 7,
+      "original_numbers_preserved": true,
+      "pdf_crosschecked": true,
+      "symbols_explained": true
+    },
+    "mermaid": {
+      "stage_count": 4,
+      "node_count": 23,
+      "edge_count": 31,
+      "all_edge_endpoints_defined": true,
+      "training_distillation_deployment_reviewed": true,
+      "check_type": "源码结构与语义核验，未声称渲染测试"
+    },
+    "independent_review": "独立只读审读核验公式、单位、数值、结论边界及模板；唯一流程标注问题已修正为视觉反馈进入Camera，本体状态直接进入Obs。",
+    "baseline": "本次开始时README.md和review.json均不存在，未覆盖既有解读或个人修改。",
+    "scope": "仅新增本版本README.md及review.json；配置、调度、凭据、原文和图片未修改。"
+  },
+  "artifacts": [
+    {
+      "path": "README.md",
+      "sha256": "eefaad1183c9209290f8cebfd1ef11940fa1a10e35fe28b9251c754dc5ce21ab"
+    }
+  ],
+  "summary": "已完成全文相关性审核及中文解读，对照 PDF 核验作者单位、七个公式和实验数据；原图链接与方法管线检查通过，证据及局限已记录。"
+}

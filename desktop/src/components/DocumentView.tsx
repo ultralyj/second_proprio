@@ -1,3 +1,4 @@
+/** 管理单篇正文、编辑草稿和版本处理；内容发布规则由后台校验。 */
 import { useCallback, useEffect, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
@@ -19,6 +20,7 @@ import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { rpc, RpcError, errorText, formatTime, openPath } from "../api";
 import type { Candidate, ContentItem, Document, Revision } from "../api";
 import { Markdown } from "./Markdown";
+import PaperRating from "./PaperRating";
 import { Empty, ErrorNotice, Loading, Modal } from "./UI";
 interface Props {
   path: string;
@@ -110,12 +112,19 @@ export default function DocumentView({
         base_hash: doc.hash,
       });
       setDoc(value);
-      setText(value.content);
       loaded.current = value.content;
-      setDraftStatus("正文已保存");
+      // 保存回包只确认提交时的文本，不覆盖等待期间继续输入的草稿。
+      if (current.current.text === text) {
+        setText(value.content);
+        setDraftStatus("正文已保存");
+      } else {
+        setDraftStatus("正文已保存，后续编辑保留为草稿");
+      }
       notify("正文已保存");
       onChanged?.();
     } catch (err) {
+      const latest = current.current;
+      if (latest.path !== path) return;
       if (err instanceof RpcError && err.code === "conflict") {
         const current = err.details as Document | undefined;
         if (current && typeof current.content === "string")
@@ -128,8 +137,8 @@ export default function DocumentView({
       setError(errorText(err) + "。你的编辑已保留为草稿，请先核对磁盘版本。");
       void rpc("content.draft", {
         path,
-        content: text,
-        base_hash: doc.hash,
+        content: latest.text,
+        base_hash: latest.hash,
       }).catch(() => {});
     } finally {
       setSaving(false);
@@ -311,13 +320,9 @@ export default function DocumentView({
                         打开示例源码
                       </Dropdown.Item>
                     )}
-                    {item?.arxiv_id && (
+                    {item?.pdf_path && (
                       <Dropdown.Item
-                        onSelect={() =>
-                          void openPath(
-                            path.replace(/README\.md$/, "paper.pdf"),
-                          )
-                        }
+                        onSelect={() => void openPath(item.pdf_path!)}
                       >
                         打开原始 PDF
                       </Dropdown.Item>
@@ -332,6 +337,14 @@ export default function DocumentView({
           )}
         </div>
       </div>
+      {!compact && item?.arxiv_id && (
+        <PaperRating
+          key={item.arxiv_id}
+          arxivId={item.arxiv_id}
+          rating={item.rating}
+          onChanged={onChanged}
+        />
+      )}
       {error && <ErrorNotice message={error} onDismiss={() => setError("")} />}
       {doc?.draft && doc.draft.content !== doc.content && mode === "read" && (
         <div className="inline-notice">

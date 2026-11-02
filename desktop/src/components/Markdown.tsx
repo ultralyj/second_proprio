@@ -1,10 +1,13 @@
-import { useEffect, useId, useState } from "react";
+/** 渲染 Markdown、公式、管线与本机图片，不修改原始文档。 */
+import { memo, useEffect, useId, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { invoke } from "@tauri-apps/api/core";
 import { readAsset } from "../api";
+import { normalizeLatexDelimiters } from "./latexDelimiters";
 function relativeAsset(path: string, src: string) {
   return src.startsWith("/")
     ? src
@@ -49,7 +52,7 @@ function LocalImage({
     <span className="muted">正在读取图片…</span>
   );
 }
-function Diagram({ source }: { source: string }) {
+const Diagram = memo(function Diagram({ source }: { source: string }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, "");
   const [svg, setSvg] = useState("");
   const [error, setError] = useState("");
@@ -95,54 +98,65 @@ function Diagram({ source }: { source: string }) {
   ) : (
     <div className="mermaid" dangerouslySetInnerHTML={{ __html: svg }} />
   );
-}
-export function Markdown({ content, path }: { content: string; path: string }) {
+});
+export const Markdown = memo(function Markdown({
+  content,
+  path,
+}: {
+  content: string;
+  path: string;
+}) {
+  // 后台轮询和正文编辑不应重建图片、管线组件，避免加载占位造成阅读跳动。
+  const components = useMemo<Components>(
+    () => ({
+      img: ({ src, alt }) => (
+        <LocalImage
+          path={path}
+          src={typeof src === "string" ? src : undefined}
+          alt={alt}
+        />
+      ),
+      a: ({ href, children }) => (
+        <a
+          href={href}
+          onClick={(event) => {
+            event.preventDefault();
+            if (href && /^https?:\/\//.test(href))
+              void invoke("open_url", { url: href });
+            else if (href && !href.startsWith("#"))
+              void invoke("open_path", { path: relativeAsset(path, href) });
+            else if (href)
+              document.getElementById(href.slice(1))?.scrollIntoView();
+          }}
+        >
+          {children}
+        </a>
+      ),
+      code: ({ className, children, ...props }) =>
+        className === "language-mermaid" ? (
+          <Diagram source={String(children).trim()} />
+        ) : (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        ),
+      pre: ({ children }) => (
+        <div className="code-container">
+          <pre>{children}</pre>
+        </div>
+      ),
+    }),
+    [path],
+  );
   return (
     <div className="markdown">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[[rehypeKatex, { throwOnError: false, trust: false }]]}
-        components={{
-          img: ({ src, alt }) => (
-            <LocalImage
-              path={path}
-              src={typeof src === "string" ? src : undefined}
-              alt={alt}
-            />
-          ),
-          a: ({ href, children }) => (
-            <a
-              href={href}
-              onClick={(event) => {
-                event.preventDefault();
-                if (href && /^https?:\/\//.test(href))
-                  void invoke("open_url", { url: href });
-                else if (href && !href.startsWith("#"))
-                  void invoke("open_path", { path: relativeAsset(path, href) });
-                else if (href)
-                  document.getElementById(href.slice(1))?.scrollIntoView();
-              }}
-            >
-              {children}
-            </a>
-          ),
-          code: ({ className, children, ...props }) =>
-            className === "language-mermaid" ? (
-              <Diagram source={String(children).trim()} />
-            ) : (
-              <code className={className} {...props}>
-                {children}
-              </code>
-            ),
-          pre: ({ children }) => (
-            <div className="code-container">
-              <pre>{children}</pre>
-            </div>
-          ),
-        }}
+        components={components}
       >
-        {content}
+        {normalizeLatexDelimiters(content)}
       </ReactMarkdown>
     </div>
   );
-}
+});

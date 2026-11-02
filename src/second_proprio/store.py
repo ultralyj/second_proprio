@@ -94,18 +94,34 @@ class Store:
         """导出任务；跨机器传输前必须由同步层白名单过滤。"""
         rows = self.connection.execute(
             "SELECT * FROM tasks ORDER BY scheduled_at").fetchall()
-        result = []
-        for row in rows:
-            value = dict(row)
-            value["payload"] = json.loads(value.pop("payload_json"))
-            value["result"] = json.loads(value.pop("result_json"))
-            result.append(value)
-        return result
+        return [self._task(row) for row in rows]
+
+    @staticmethod
+    def _task(row: sqlite3.Row) -> dict:
+        """将一行存储记录解码为统一任务对象。"""
+        value = dict(row)
+        value["payload"] = json.loads(value.pop("payload_json"))
+        value["result"] = json.loads(value.pop("result_json"))
+        return value
+
+    def counts(self) -> dict[str, int]:
+        """直接汇总状态数量，健康检查不读取历史正文与任务载荷。"""
+        return dict(
+            self.connection.execute(
+                "SELECT status,COUNT(*) FROM tasks GROUP BY status").fetchall())
 
     def merge_tasks(self,
                     tasks: list[dict],
                     accept_completed: bool = False) -> None:
-        """合并远端信封；本机不会信任远端声称的生成完成状态。"""
+        """合并远端信封，保留本机任务状态。
+
+        Args:
+            tasks: 已由同步层过滤私密字段的远端任务信封。
+            accept_completed: 仅服务器接收本机完成确认时启用；Mac 保持关闭。
+
+        Raises:
+            ValueError: 类型、带时区计划时间、标识或状态不合法。
+        """
         for task in tasks:
             kind = task["kind"]
             scheduled = task["scheduled_at"]
@@ -129,7 +145,19 @@ class Store:
                error: str | None = None,
                retry_at: str | None = None,
                processed_on: str | None = None) -> None:
-        """原子确认处理结果或登记可重试失败。"""
+        """原子确认结果；只有失败状态增加失败预算，等待和取消不计入。
+
+        Args:
+            identifier: 已登记的任务标识。
+            status: 目标状态。
+            result: 结构化结果，省略时清为空对象。
+            error: 失败说明，其他状态通常为空。
+            retry_at: 下次允许重试的带时区时间，省略表示没有指定时间。
+            processed_on: 按配置时区计算的实际处理日期。
+
+        Raises:
+            ValueError: 目标状态不受支持。
+        """
         if status not in STATUSES:
             raise ValueError(f"未知状态：{status}")
         with self.connection:
@@ -171,10 +199,11 @@ class Store:
 
     def get(self, identifier: str) -> dict:
         """按标识读取任务，不接受未知任务。"""
-        for task in self.export_tasks():
-            if task["id"] == identifier:
-                return task
-        raise ValueError("任务不存在")
+        row = self.connection.execute("SELECT * FROM tasks WHERE id=?",
+                                      (identifier,)).fetchone()
+        if row is None:
+            raise ValueError("任务不存在")
+        return self._task(row)
 
     def event(self, identifier: str, stage: str, message: str) -> None:
         """记录结构化阶段，避免将模型工具正文视作状态。"""

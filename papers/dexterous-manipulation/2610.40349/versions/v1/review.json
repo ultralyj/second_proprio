@@ -1,5 +1,29 @@
 {
   "status": "done",
   "reviewed_at": "2026-10-30T13:20:51.851745+08:00",
-  "summary": "已核验全文相关性并完成中文解读，包含逐符号公式、Mermaid、创新判断和实验局限。已用官方 PDF 核对关键证据，补齐图 1，检查全部 11 张图片链接，并记录审核完成状态。"
+  "summary": "已核验全文相关性并完成中文解读，包含逐符号公式、Mermaid、创新判断和实验局限。已用官方 PDF 核对关键证据，补齐图 1，检查全部 11 张图片链接，并记录审核完成状态。",
+  "reading_layout": {
+    "version": "1.1",
+    "affiliation_evidence": "本地paper.pdf第1页：逐作者1–5上标与五条单位映射；HTML把所有单位挤在一位作者下，未采用该排版作归属依据。",
+    "abstract_source": "metadata.json abstract，与本地全文摘要核对",
+    "source_files": {
+      "metadata.json": "d387f6eb51da5fe7e5d98fd1e6d79b6f35bb4517cf4c9b50a314d66df2d15025",
+      "source.html": "57c99de5b8745dba8aaa884bea1f78d24130b4474cf9e5477dacbb475e491904",
+      "source.txt": "3b0e78509b921fecdd29c59e415076e6272967aec5bfdcb6842d79795bc3cfa0",
+      "paper.pdf": "a386944f650f9c0ddcd0bc82cb3a66c847e65be187a375743cdab9122fdaf996"
+    },
+    "previous_source_and_audit": {
+      "frontmatter": "# TouchBridge：把人类接触示范转换成灵巧机器人训练数据\n\n",
+      "sections": [
+        [
+          "1. 原文信息与相关性",
+          "- **标题**：TouchBridge: Tactile-Conditioned Human-to-Robot Transfer for Dexterous Manipulation。\n- **作者**：Haozhe Zhang、Gu Zhang、Zirui Zou、Yuzheng Chen、Jinlong Wu、Zixuan Hu、Jianke Zhang、Yucheng Hu、Zhecheng Yuan、Huazhe Xu。\n- **arXiv**：2610.40349，v1，cs.RO；本次只解读这个版本，目录内无旧版本可比较。\n- **时间**：元数据的提交/更新时间为 2026-10-29 16:06:36 UTC，即 Asia/Shanghai 的 2026-10-30 00:06:36。这不是已经核实的 arXiv 公告时间。\n- **解读日期**：2026-10-30，使用项目配置的 Asia/Shanghai 时区。\n- **来源**：[摘要页](https://arxiv.org/abs/2610.40349v1)、[HTML 全文](https://arxiv.org/html/2610.40349v1)、[官方 PDF](https://arxiv.org/pdf/2610.40349v1)、[本地 PDF](paper.pdf)、[本地全文文本](source.txt)、[本地 HTML](source.html)。下文页码按这份 10 页 PDF 的物理页计。\n- **语义审核：高度相关**。主题配置为“灵巧手与操作”。正文 III 节研究双手、多指接触约束下的人到机器人动作重定向（retargeting），IV 节在 Wuji 灵巧手上验证翻页、拧灯泡、挤酱和易碎物抓取；研究对象、接触保持问题、触觉方法和实机任务均直接落在主题内，依据不止是标题中的 dexterous。\n\n阅读与核验范围：已读本地正文及附录，用官方 PDF 交叉核对公式、实验数值和表 II–IV，并查看核心方法图。下文是论文解读，没有运行作者代码或完成实机复现。"
+        ],
+        [
+          "10. 来源与推荐阅读位置",
+          "| 要核查的问题 | 原文位置 | 本地证据 |\n| --- | --- | --- |\n| 动机、贡献与相关工作差异 | I–II，表 I，PDF pp.1–3 | [HTML](source.html)、[PDF](paper.pdf) |\n| 三类重定向目标 | III-B，式 (1)–(6)，图 3，PDF pp.4–5 | [方法原图](figures/figure-03-01.png) |\n| 图像合成与移动相机动作 | III-C，式 (7)，图 4，PDF p.5 | [转换原图](figures/figure-04-01.png) |\n| 实机样本、任务判据、两种数据源 | IV-A–C，图 5–7，PDF pp.5–7 | [全文](source.txt) |\n| 仿真误差与实机消融的区别 | 表 II，IV-D，图 8–9，PDF pp.6–8 | [PDF](paper.pdf) |\n| 预训练作用与作者局限 | IV-E、V，图 10，PDF pp.7–8 | [PDF](paper.pdf) |\n| 时钟、频率和坐标标定 | 附录 A（HTML 标为 V-A），表 III、式 (8)–(11)，PDF pp.8–9 | [标定原图](figures/figure-13-01.png) |\n| 激活、权重、顺应补偿与超参数 | 附录 B（HTML 标为 V-B），式 (12)–(16)、表 IV，PDF pp.9–10 | [PDF](paper.pdf) |\n\n元数据与抓取覆盖另见 [metadata.json](metadata.json)、[preparation.json](preparation.json)、[figures.json](figures.json)。审核结果见 [review.json](review.json)。"
+        ]
+      ]
+    }
+  }
 }

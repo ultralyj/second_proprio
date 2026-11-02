@@ -1,5 +1,29 @@
 {
   "status": "done",
   "reviewed_at": "2026-10-30T13:20:51.851745+08:00",
-  "summary": "全文核验确认与灵巧操作高度相关，已完成中文解读、逐符号公式、Mermaid 和原图链接检查，并用官方 PDF 核对关键证据。已保留原文符号疑点、样本口径冲突及理论和实验局限；未声称已复现。"
+  "summary": "全文核验确认与灵巧操作高度相关，已完成中文解读、逐符号公式、Mermaid 和原图链接检查，并用官方 PDF 核对关键证据。已保留原文符号疑点、样本口径冲突及理论和实验局限；未声称已复现。",
+  "reading_layout": {
+    "version": "1.1",
+    "affiliation_evidence": "本地 paper.pdf 第1页每位作者下方均标注Huawei；source.html署名区一致。",
+    "abstract_source": "metadata.json abstract，与本地全文摘要核对",
+    "source_files": {
+      "metadata.json": "921bb601955058b32cbfb5e85e561f4c88b8ab35830cae47477f5a310e1e5cfa",
+      "source.html": "e885ca7a36b46b74b700a8fd8b4918d3e1f41f239805a76516073ca2b0276e51",
+      "source.txt": "827eecce459ec85ff6230228d75ff2a4c13597828c4aaf646cdaa1509d4af3b2",
+      "paper.pdf": "934291af54d7977c17314406d6aef56ddf8b0949eab208ae00189c8f8144ff4a"
+    },
+    "previous_source_and_audit": {
+      "frontmatter": "# Coupled Guidance for Flow Matching：通过双端点引导稳定灵巧操作轨迹补全\n\n",
+      "sections": [
+        [
+          "1. 原文信息与相关性",
+          "- **作者**：Mateo Clémente、Léo Maxime Brunswic、Rui Heng Yang、Amir Rasouli。\n- **arXiv**：2610.40109，v1；分类 cs.LG、cs.RO。\n- **提交／更新日期**：元数据均为 2026-10-29 14:12:07 UTC，即配置时区 Asia/Shanghai 的 2026-10-29 22:12:07。这里是版本提交时间，不另推断公告时间。\n- **原文**：[摘要页](https://arxiv.org/abs/2610.40109v1)、[HTML 全文](https://arxiv.org/html/2610.40109v1)、[官方 PDF](https://arxiv.org/pdf/2610.40109v1)。本地保留 [HTML](source.html)、[提取文本](source.txt) 与 [核验用 PDF](paper.pdf)。\n- **解读日期**：2026-10-30，Asia/Shanghai。仅解读 v1；本篇没有需要比较的本地旧版。\n- **主题判定：高度相关，纳入“灵巧手与操作”**。§5.2 不只是提及 dexterous，而是把 Adroit 的 Door、Pen、Hammer、Relocate 四项灵巧操作作为主要实验之一：让低层流匹配控制器根据高层规划器的稀疏状态—动作轨迹补全控制序列，评估引导稀疏时的表现。相关点是**生成式操作策略的推理引导与层级控制**，并非新的灵巧手机械结构、触觉硬件或接触模型。\n\n阅读依据包括完整正文、附录 A–C、本地原图，以及官方 PDF 的公式和表格。下文“作者主张”和“解读判断”分别标注；没有运行训练或复现实验。"
+        ],
+        [
+          "10. 来源与阅读位置",
+          "| 要核对的内容 | 原文位置／PDF 页码 |\n|---|---|\n| 既有 ΠGDM、ΠGDM+ 与能量引导 | §2 “Base Methods”，p.3；附录 B.1，p.15 |\n| FM 损失与速度场 | §3.1–3.2，pp.3–4；式 (1)–(2) |\n| naive 隐含潜变量修正 | §3.3，p.4；式 (3)–(11) |\n| 密度比误差上界及假设 | §3.4，p.5；式 (12)；附录 A，p.14，式 (15)–(22) |\n| 双端点更新、β 的含义 | §4.1，pp.5–6；式 (13)–(14)、Algorithm 1 |\n| 避障数值与种子数 | §5.1，pp.6–7；表 2；与附录 B.2 的口径冲突见本文 7.1 |\n| Adroit 层级控制、稀疏性 | §5.2，p.7；图 2–3；附录 C.1，p.16，图 6–7 |\n| 图像指标、反例与超参数 | 表 1，p.6；§5.3，pp.8–9；附录 B.3，p.15；C.2 表 3–4，p.17 |\n| 作者承认的理论与无噪声限制 | §6，p.9 |\n| 其他原图 | 附录 C.2，pp.18–25；图 8–23 |\n\n本地来源清单：[metadata.json](metadata.json)、[preparation.json](preparation.json)、[figures.json](figures.json)。关键公式、表 1–4 及实验段落已与官方版本 PDF 核对；原文自身的符号、种子数及论述边界问题已在正文保留，没有替作者补成确定事实。"
+        ]
+      ]
+    }
+  }
 }

@@ -1,3 +1,4 @@
+/** 维护配置草稿并显式提交，独立显示服务器同步与来源检查状态。 */
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
@@ -7,8 +8,16 @@ import {
   ShieldCheck,
   Power,
 } from "lucide-react";
-import { rpc, errorText, checkLogin, openPath, serviceControl } from "../api";
+import {
+  rpc,
+  errorText,
+  checkLogin,
+  openPath,
+  serviceControl,
+  chooseDirectory,
+} from "../api";
 import type { Config, ConfigResponse, Kind, Schedule, Task } from "../api";
+import "./personal.css";
 import {
   ErrorNotice,
   Field,
@@ -17,6 +26,31 @@ import {
   Section,
   Toggle,
 } from "../components/UI";
+interface ReviewSourceStatus {
+  directory: string;
+  exists: boolean;
+  file_count: number;
+  dates: Record<string, { messages: number }>;
+  coverage_start: string | null;
+  coverage_end: string | null;
+  errors: { source: string; message: string }[];
+  warnings: { source: string; message: string }[];
+}
+function formatSourceTime(value: string, timezone: string): string {
+  try {
+    return new Intl.DateTimeFormat("zh-CN", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+}
 function ListInput({
   value,
   onChange,
@@ -171,6 +205,12 @@ export default function Settings({
   } | null>(null);
   const [syncReadError, setSyncReadError] = useState("");
   const syncEpoch = useRef(0);
+  const [sourceStatus, setSourceStatus] = useState<ReviewSourceStatus | null>(
+    null,
+  );
+  const [sourceLoading, setSourceLoading] = useState(false);
+  const [sourceError, setSourceError] = useState("");
+  const [sourceCheck, setSourceCheck] = useState(0);
   useEffect(() => {
     rpc<ConfigResponse>("config.get")
       .then((value) => {
@@ -208,6 +248,25 @@ export default function Settings({
       clearInterval(timer);
     };
   }, [response?.revision]);
+  useEffect(() => {
+    if (tab !== "review" || !response) return;
+    let mounted = true;
+    setSourceLoading(true);
+    setSourceError("");
+    void rpc<ReviewSourceStatus>("review.sources")
+      .then((value) => {
+        if (mounted) setSourceStatus(value);
+      })
+      .catch((err) => {
+        if (mounted) setSourceError(errorText(err));
+      })
+      .finally(() => {
+        if (mounted) setSourceLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [tab, response?.revision, sourceCheck]);
   function update(edit: (value: Config) => void) {
     setConfig((previous) => {
       if (!previous) return previous;
@@ -325,6 +384,28 @@ export default function Settings({
               {tab === "general" && (
                 <>
                   <Section title="通用">
+                    <Field
+                      label="首页自我叩问"
+                      hint="首页只留一个值得停下来想想的问题"
+                    >
+                      <textarea
+                        rows={2}
+                        maxLength={300}
+                        value={
+                          typeof config.desktop?.home_question === "string"
+                            ? config.desktop.home_question
+                            : "此刻，我最值得投入的一件事是什么？"
+                        }
+                        onChange={(event) =>
+                          update((config) => {
+                            config.desktop = {
+                              ...config.desktop,
+                              home_question: event.target.value,
+                            };
+                          })
+                        }
+                      />
+                    </Field>
                     <Field label="外观">
                       <select
                         value={config.desktop?.appearance || "system"}
@@ -406,7 +487,7 @@ export default function Settings({
                   </Section>
                   <Section
                     title="本机后台"
-                    description="后台独立运行。暂停 AI 任务请前往任务页面，关心提醒可单独关闭。"
+                    description="后台独立运行。可在任务页面暂停沉淀，关心提醒可单独关闭。"
                   >
                     <Field
                       label="停止后台"
@@ -576,15 +657,121 @@ export default function Settings({
                   </Section>
                   <Section
                     title="记录来源"
-                    description="导入 ChatGPT 导出 JSON 或记录快照，也可以在复盘页面手工补充当天记录。"
+                    description="支持 ChatGPT 导出 JSON、Codex 本机对话或已导入快照，也可以在复盘页面手工补充当天记录。"
                   >
-                    <Field label="本机来源目录">
-                      <code>{config.review.source_directory}</code>
+                    <Field
+                      label="聊天记录目录"
+                      hint="可填写项目内相对路径或本机绝对路径；保存后生效"
+                    >
+                      <input
+                        value={config.review.source_directory}
+                        placeholder="/Users/你的用户名/聊天记录"
+                        onChange={(event) =>
+                          update((config) => {
+                            config.review.source_directory = event.target.value;
+                          })
+                        }
+                      />
+                      <button
+                        className="icon-button"
+                        aria-label="选择复盘来源目录"
+                        onClick={async () => {
+                          try {
+                            const directory = await chooseDirectory();
+                            if (directory)
+                              update((config) => {
+                                config.review.source_directory = directory;
+                              });
+                          } catch (err) {
+                            setError(errorText(err));
+                          }
+                        }}
+                      >
+                        <FolderOpen size={15} />
+                      </button>
                     </Field>
                   </Section>
+                  <div className="settings-source-status" aria-live="polite">
+                    <div className="settings-source-heading">
+                      <span>已保存配置的读取状态</span>
+                      <button
+                        className="quiet-button"
+                        disabled={sourceLoading}
+                        onClick={() => setSourceCheck((value) => value + 1)}
+                      >
+                        重新检查
+                      </button>
+                    </div>
+                    {sourceLoading ? (
+                      <Loading text="正在检查记录来源…" />
+                    ) : sourceError ? (
+                      <ErrorNotice message={sourceError} />
+                    ) : sourceStatus ? (
+                      <>
+                        <p>
+                          {sourceStatus.exists
+                            ? "配置目录已找到"
+                            : "配置目录尚不存在"}
+                        </p>
+                        <code>{sourceStatus.directory}</code>
+                        <p>
+                          共发现 {sourceStatus.file_count} 个来源文件（含 App
+                          内导入记录）
+                        </p>
+                        {sourceStatus.coverage_start &&
+                        sourceStatus.coverage_end ? (
+                          <p>
+                            覆盖{" "}
+                            {formatSourceTime(
+                              sourceStatus.coverage_start,
+                              response?.config.timezone || "Asia/Shanghai",
+                            )}{" "}
+                            —{" "}
+                            {formatSourceTime(
+                              sourceStatus.coverage_end,
+                              response?.config.timezone || "Asia/Shanghai",
+                            )}
+                          </p>
+                        ) : (
+                          <p>尚无可确认的消息覆盖时间。</p>
+                        )}
+                        {!!Object.keys(sourceStatus.dates).length && (
+                          <p>
+                            可复盘 {Object.keys(sourceStatus.dates).length} 天 ·{" "}
+                            {Object.values(sourceStatus.dates).reduce(
+                              (total, day) => total + day.messages,
+                              0,
+                            )}{" "}
+                            条消息
+                          </p>
+                        )}
+                        {[...sourceStatus.errors, ...sourceStatus.warnings]
+                          .length > 0 && (
+                          <details>
+                            <summary>
+                              查看来源问题（
+                              {sourceStatus.errors.length +
+                                sourceStatus.warnings.length}
+                              ）
+                            </summary>
+                            <ul>
+                              {[
+                                ...sourceStatus.errors,
+                                ...sourceStatus.warnings,
+                              ].map((issue, index) => (
+                                <li key={index}>
+                                  <span>{issue.source}</span>：{issue.message}
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        )}
+                      </>
+                    ) : null}
+                  </div>
                   <p className="muted">
-                    CLI 登录不等于可读取 ChatGPT
-                    聊天历史。没有来源时会提醒你补充。
+                    本机对话从选定目录读取；ChatGPT 云端历史需先导出或导入。
+                    没有来源时会提醒你补充。
                   </p>
                 </>
               )}

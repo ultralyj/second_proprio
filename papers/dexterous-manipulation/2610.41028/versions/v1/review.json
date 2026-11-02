@@ -1,0 +1,245 @@
+{
+  "status": "done",
+  "reviewed_at": "2026-11-02T13:01:29.859250+08:00",
+  "reason": "全文研究机器人灵巧手的接触敏感操作，提出共享指尖接触几何与RGB观测、接触优先重定向、相对接触面规划和腕指协调控制，并在LEAP/Wuji的六个手型—任务组合上实机验证；问题、对象、任务及方法均与“灵巧手与操作”主题高度相关。",
+  "paper_id": "2610.41028",
+  "version": 1,
+  "topic_id": "dexterous-manipulation",
+  "sources": [
+    {
+      "type": "local_metadata",
+      "path": "metadata.json",
+      "role": "作者顺序、原始摘要、版本与提交时间",
+      "sha256": "b081343588819d6517f3d1f3d420e20373aef081a50f1b8aaa2ac6a71fe9c000"
+    },
+    {
+      "type": "local_full_text",
+      "path": "source.html",
+      "url": "https://arxiv.org/html/2610.41028v1",
+      "sha256": "09962ee64aa39c03fddce9dbe98d4f4b83606cdb61e111633a023229b1ba2369"
+    },
+    {
+      "type": "local_extracted_text",
+      "path": "source.txt",
+      "sha256": "fc2bf5b552551711b3e60af537b53722150a066c283b53d8ad52fc221bb52db3"
+    },
+    {
+      "type": "original_pdf",
+      "url": "https://arxiv.org/pdf/2610.41028v1",
+      "pages": 15,
+      "sha256": "8829c30615ce3887b62b47f0d55ea23a75829683c9aaf0078243707d13e2facd",
+      "role": "原始PDF首页署名、关键公式与实验表格独立核对；临时下载和渲染，不修改原有全文缓存"
+    },
+    {
+      "type": "preparation_manifest",
+      "path": "preparation.json"
+    },
+    {
+      "type": "figure_manifest",
+      "path": "figures.json"
+    }
+  ],
+  "affiliation_evidence": {
+    "association_verified": true,
+    "source_url": "https://arxiv.org/pdf/2610.41028v1",
+    "locator": "PDF第1页题目下署名、作者上标及单位行；已同时查看首页图像与提取文本",
+    "institutions": {
+      "1": "National University of Singapore",
+      "2": "RoboScience",
+      "3": "South China University of Technology"
+    },
+    "authors": [
+      {
+        "name": "Zhixuan Xu",
+        "affiliations": [
+          "1"
+        ],
+        "equal_contribution": true
+      },
+      {
+        "name": "Yichen Li",
+        "affiliations": [
+          "1",
+          "2"
+        ],
+        "equal_contribution": true
+      },
+      {
+        "name": "Bingchen Wu",
+        "affiliations": [
+          "1",
+          "2"
+        ]
+      },
+      {
+        "name": "Rui Wang",
+        "affiliations": [
+          "1",
+          "2"
+        ]
+      },
+      {
+        "name": "Yiwen Hou",
+        "affiliations": [
+          "1"
+        ]
+      },
+      {
+        "name": "Zixuan Liu",
+        "affiliations": [
+          "1"
+        ]
+      },
+      {
+        "name": "Tianyu Qiu",
+        "affiliations": [
+          "2",
+          "3"
+        ]
+      },
+      {
+        "name": "Lin Shao",
+        "affiliations": [
+          "1",
+          "2"
+        ],
+        "corresponding_author": true
+      }
+    ],
+    "note": "HTML署名缺失作者上标且将机构列表挂在Tianyu Qiu节点下，不能据此分配机构。本次用PDF逐人确认，未按姓名或邮箱推断。原文星号为Equal contribution，正文译作同等贡献。"
+  },
+  "coverage": {
+    "full_text_available": true,
+    "read": [
+      "主文摘要、I–V节",
+      "补充材料I-A至I-E：硬件、跟踪、重定向、相机安装及数据质量",
+      "补充材料II-A至II-F：规划器、控制器、部署复用、接触机制、相机预处理及效率"
+    ],
+    "pdf_cross_checks": [
+      {
+        "locator": "PDF第1页",
+        "items": [
+          "作者机构上标及贡献标记",
+          "摘要"
+        ]
+      },
+      {
+        "locator": "PDF第4页，主文III-B L1",
+        "items": [
+          "无编号相对接触面轨迹定义、9F维表示、控制器输出与执行块"
+        ]
+      },
+      {
+        "locator": "PDF第10–11页，补充I-B、I-C",
+        "items": [
+          "S1、S2坐标链和角点",
+          "S4、S5归一化接触及平滑损失；第11页亦视觉核验"
+        ]
+      },
+      {
+        "locator": "PDF第12–13页，补充II-A、图S3",
+        "items": [
+          "S7、S8流匹配定义、均匀源分布、条件维度、三步Euler、动作缩放"
+        ]
+      },
+      {
+        "locator": "PDF第14页，补充II-B、图S5",
+        "items": [
+          "S9、S10、S11，角点/特征/输出维度、平移缩放、100倍单位换算、动作损失权重；亦视觉核验"
+        ]
+      },
+      {
+        "locator": "PDF第5页表II、第6页表III、第7页表IV",
+        "items": [
+          "所有表格数值逐格核对",
+          "训练示范数、20次试验和最终阶段等权均值"
+        ]
+      },
+      {
+        "locator": "PDF第6–7页IV-C、图6",
+        "items": [
+          "15分钟协议、70%/71%/2.3倍的正文结果"
+        ]
+      },
+      {
+        "locator": "PDF第14–15页，补充II-C至II-F",
+        "items": [
+          "轨迹采样与重规划区别",
+          "无接触力测量或调节",
+          "图像预处理与可观测输入"
+        ]
+      }
+    ],
+    "not_performed": [
+      "代码执行或实机复现",
+      "项目网站软件与硬件发布内容逐项验收",
+      "被引文献的独立全文审查"
+    ],
+    "previous_version": "本次为v1，目录未发现需要对比的旧版本；仅处理指定版本。"
+  },
+  "evidence": [
+    {
+      "claim": "共享指尖几何、匹配局部RGB观测，腕部和手指联合重定向",
+      "locator": "主文III-A D1–D4；图2–4；补充I-B/C/D"
+    },
+    {
+      "claim": "相对当前接触面预测未来块，控制器单独实现腕部和关节动作",
+      "locator": "主文III-B L1–L3；补充II-A/B；图S3/S5"
+    },
+    {
+      "claim": "CIMI六组合最终阶段均值80.8%，直接腕关节预测同相机基线30.8%，提升50.0个百分点",
+      "locator": "表II；IV-A O1–O3",
+      "calculation": "(75+85+80+90+70+85)/6=80.8333%；(20+35+15+70+15+30)/6=30.8333%"
+    },
+    {
+      "claim": "重定向角点误差与成功率",
+      "locator": "表III；IV-B；误差来自示范与重定向轨迹，不是执行跟踪误差"
+    },
+    {
+      "claim": "视觉增强、重投影和叠加的重要性及控制器消融混杂因素",
+      "locator": "表IV；IV-D O6–O8"
+    }
+  ],
+  "figures": {
+    "embedded": [
+      "figures/figure-03-01.png",
+      "figures/figure-05-01.png",
+      "figures/figure-06-01.png",
+      "figures/figure-15-01.svg",
+      "figures/figure-21-01.svg"
+    ],
+    "all_links_exist": true,
+    "visually_inspected": [
+      "figures/figure-03-01.png（原文图2，已确认共享模块、规划器与控制器管线）",
+      "PDF第1页署名",
+      "PDF第11页S4/S5",
+      "PDF第14页S9–S11及图S5"
+    ],
+    "manifest_notes": "预处理清单重复收录图3/4且有共享figure_id；正文使用figure-05-01.png对应图3、figure-06-01.png对应图4，未照搬错误的合并图注。"
+  },
+  "limitations": [
+    "原文未给各成功阶段的定量阈值、单次运行时限、完整初始状态分布、置信区间或多随机种子统计；正文保留阶段名、20次试验和这些限制，不补造阈值。",
+    "跨手实验对两种手分别训练策略，并非单一策略零样本迁移；控制器复用也要求同一手型、手指集合和表示约定。",
+    "控制器运动增强消融同时改变训练任务覆盖，不能单因素归因。",
+    "动作目标为位姿而非力，关节限位不保证多接触面轨迹可达；胶带和顺应性机制按作者解释呈现。",
+    "采集吞吐量来自同一操作者，缺少多操作者统计。",
+    "HTML与PDF部分参考文献编号不同；正文使用方法名称、章节、图表及公式号，未混用文献编号。"
+  ],
+  "unresolved_source_blockers": [],
+  "source_access_notes": [
+    "web工具PDF读取返回Cache miss、沙箱curl出现DNS失败；随后获准直接下载原始PDF成功，来源阻碍已解决。"
+  ],
+  "validation": {
+    "template_order": "基本信息、中文摘要、Key insight、方法管线、方法详解、实验",
+    "abstract": "已逐句核对完整翻译及作者结论语气",
+    "equations": "9个原编号公式及1组主文无编号定义；已对照PDF并解释符号、维度与坐标系",
+    "mermaid": "检查三阶段、13个节点、17条边及端点，人工核对数据流；控制器旁路只标实测关节；未运行渲染器",
+    "image_links": "5个相对图片路径均存在",
+    "baseline": "写入前README.md与review.json均不存在，无人工正文被覆盖",
+    "scope": "仅新增本版本README.md与review.json；不修改配置、调度、凭据、原文或原图",
+    "independent_review": "第二代理独立核对实验、正文及公式，提出的贡献标记、控制器输入箭头与平移缩放建议已修正",
+    "readme_sha256": "9b4da7b88a3d3a6cd779e92a2493158418f5f989e92e3952f5ca27c7c9876f76",
+    "tests": "仅文档改动，完成针对性内容与链接检查，未运行全仓测试"
+  },
+  "summary": "已完成全文相关性核验与中文解读；作者单位、关键公式和实验数值已对照 PDF 确认，原图链接与文档结构检查通过。原文未披露的评价阈值等限制已保留。"
+}

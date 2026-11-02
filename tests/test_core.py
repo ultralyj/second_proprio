@@ -23,9 +23,11 @@ from second_proprio.store import Store
 
 @pytest.fixture(name="project")
 def fixture_project(tmp_path):
-    """在临时目录建立真实配置副本。"""
+    """仅复制公开配置模板，隔离真实凭据与外部聊天目录。"""
     source = Path(__file__).parents[1] / "config"
-    shutil.copytree(source, tmp_path / "config")
+    (tmp_path / "config").mkdir()
+    for name in ("schema.json", "settings.example.json"):
+        shutil.copyfile(source / name, tmp_path / "config" / name)
     config = configuration.load(tmp_path)
     config["runtime"]["notify"] = False
     return tmp_path, config
@@ -165,6 +167,62 @@ def test_status_and_mood_work_while_generation_is_running(project):
                                note="测试记录",
                                action=""))
         assert json.loads(Path(result["saved"]).read_text("utf-8"))["mood"] == 3
+
+
+@pytest.mark.parametrize("status", ["cancelled", "waiting_review"])
+def test_legacy_import_does_not_reopen_user_decisions(project, status):
+    """未启用桌面服务时，导入来源也不得重开已取消或待采纳的任务。"""
+    root, config = project
+    store = Store(root / config["paths"]["state"] / "queue.sqlite3")
+    identifier = store.add("review", "2026-10-29T22:30:00+08:00", "test")
+    store.finish(identifier, status, {"draft": "保留的草稿"})
+    source = root / "source.json"
+    configuration.atomic_json(
+        source, {
+            "messages": [{
+                "timestamp": "2026-10-29T12:00:00+08:00",
+                "role": "user",
+                "text": "完成论文阅读"
+            }]
+        })
+    try:
+        cli._dispatch(  # pylint: disable=protected-access
+            argparse.Namespace(root=root, command="import-chat", source=source))
+        assert store.get(identifier)["status"] == status
+        assert store.get(identifier)["result"] == {"draft": "保留的草稿"}
+    finally:
+        store.close()
+
+
+def test_legacy_retry_resets_budget_and_preserves_attempts(
+        project, monkeypatch):
+    """命令行显式重试失败任务会恢复预算，但保留累计执行次数。"""
+    root, config = project
+    config["scheduler"]["enabled"] = False
+    configuration.atomic_json(root / "config/settings.json", config)
+    now = dt.datetime(2026, 11, 2, 13, tzinfo=ZoneInfo(config["timezone"]))
+    monkeypatch.setattr(scheduler, "now_local", lambda _: now)
+    store = Store(root / config["paths"]["state"] / "queue.sqlite3")
+    identifier = store.add("papers", "2026-11-02T12:30:00+08:00", "test")
+    for _ in range(config["scheduler"]["max_attempts"]):
+        store.claim(identifier)
+        store.finish(identifier, "failed", {"draft": "继续使用草稿"})
+    monkeypatch.setattr(runner, "consume", lambda *_: [])
+    monkeypatch.setattr(runner, "dashboard", lambda *_: None)
+    try:
+        cli._dispatch(  # pylint: disable=protected-access
+            argparse.Namespace(root=root,
+                               command="run",
+                               kind="papers",
+                               date=None,
+                               retry_failed=True))
+        task = store.get(identifier)
+        assert task["status"] == "pending"
+        assert task["failures"] == 0
+        assert task["attempts"] == config["scheduler"]["max_attempts"]
+        assert task["result"] == {"draft": "继续使用草稿"}
+    finally:
+        store.close()
 
 
 def test_cli_completion_recovery_requires_valid_final_and_completed_turn(

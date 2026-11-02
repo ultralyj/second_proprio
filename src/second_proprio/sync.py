@@ -4,16 +4,14 @@ from __future__ import annotations
 
 import copy
 import datetime
-import hashlib
 import json
-import os
 from pathlib import Path
 import re
 import shlex
 import subprocess
-import tempfile
 from typing import Any
 
+from second_proprio.config import atomic_json, revision
 from second_proprio.store import Store
 from second_proprio.store import task_id
 
@@ -26,15 +24,6 @@ _PUBLIC_PAPER_FIELDS = frozenset({
 })
 _PAPER_ID = re.compile(r"(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Z]{2})?/\d{7})")
 _TOPIC_ID = re.compile(r"[a-z0-9][a-z0-9-]*")
-
-
-def revision(config: dict[str, Any]) -> str:
-    """返回配置规范化 JSON 的 SHA256。"""
-    encoded = json.dumps(config,
-                         ensure_ascii=False,
-                         sort_keys=True,
-                         separators=(",", ":")).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
 
 
 def sanitized_config(config: dict[str, Any]) -> dict[str, Any]:
@@ -168,24 +157,6 @@ def task_envelope(task: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-def _write_json(path: Path, data: dict[str, Any]) -> None:
-    """在目标目录内原子替换 JSON 文件。"""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = None
-    try:
-        with tempfile.NamedTemporaryFile(mode="w",
-                                         encoding="utf-8",
-                                         dir=path.parent,
-                                         delete=False) as stream:
-            temporary = Path(stream.name)
-            json.dump(data, stream, ensure_ascii=False, indent=2)
-            stream.write("\n")
-        os.replace(temporary, path)
-    finally:
-        if temporary is not None and temporary.exists():
-            temporary.unlink()
-
-
 def _state(path: Path) -> dict[str, Any]:
     """读取已有同步状态，缺失或损坏时返回空状态。"""
     try:
@@ -218,7 +189,7 @@ def sync(root: Path, config: dict[str, Any]) -> dict[str, Any]:
         "status": "disabled" if not config["server"]["enabled"] else "pending",
     })
     if not config["server"]["enabled"]:
-        _write_json(state_path, current)
+        atomic_json(state_path, current)
         return current
     store = None
     try:
@@ -301,5 +272,5 @@ def sync(root: Path, config: dict[str, Any]) -> dict[str, Any]:
     finally:
         if store is not None:
             store.close()
-    _write_json(state_path, current)
+    atomic_json(state_path, current)
     return current

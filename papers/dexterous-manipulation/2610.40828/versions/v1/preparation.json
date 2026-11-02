@@ -1,0 +1,71 @@
+{
+  "prepared_at": "2026-11-02T05:02:53.736242+00:00",
+  "status": "ready_for_review",
+  "errors": [],
+  "source_format": "html",
+  "source_url": "https://arxiv.org/html/2610.40828v1",
+  "figures": [
+    {
+      "figure_id": "S0.F1",
+      "caption": "Figure 1: Skill-orchestration workflow: (a) teleoperated data collection,\n(b) segmentation into motion primitives and learned skills, (c) execution, where\nthe learned skill acts after classical point-to-point motion.",
+      "source_url": "https://arxiv.org/html/2610.40828v1/fig_system.png",
+      "path": "figures/figure-01-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S3.F2",
+      "caption": "Figure 2: (a) Before/after success of paired runs, both jigs, with\nFisher exact $p$ ; labels name every setting that differed. † Pick rate\nof the grasp skill; other rows: insert rate of the grasp-then-insert pairing. (b) Pearson $r$ between offline metrics and the insert-given-pick rate,\none metric per cell within one policy group (centre-only or both-jig\ncheckpoints); coloured cells are reliable.",
+      "source_url": "https://arxiv.org/html/2610.40828v1/fig_changes_serif.svg",
+      "path": "figures/figure-02-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S3.F2",
+      "caption": "Figure 2: (a) Before/after success of paired runs, both jigs, with\nFisher exact $p$ ; labels name every setting that differed. † Pick rate\nof the grasp skill; other rows: insert rate of the grasp-then-insert pairing. (b) Pearson $r$ between offline metrics and the insert-given-pick rate,\none metric per cell within one policy group (centre-only or both-jig\ncheckpoints); coloured cells are reliable.",
+      "source_url": "https://arxiv.org/html/2610.40828v1/fig_corr_heatmap.png",
+      "path": "figures/figure-02-02.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A2.F3",
+      "caption": "Figure 3: Start positions ( $x$ , $y$ of the end effector in the robot base\nframe) of the grasp episodes in the all-episode and balanced-200\nsets, with their convex hulls. Stars mark the two test start positions. The\nbalanced set keeps the spread of start positions while evening out the\nclusters formed by the jig placements.",
+      "source_url": "https://arxiv.org/html/2610.40828v1/fig_start_hull.svg",
+      "path": "figures/figure-05-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "A6.F4",
+      "caption": "Figure 4: Training loss (solid) and validation loss (dotted) of the deployed\nskill of each policy family, from the runs’ training logs; each panel states\nhow often the validation loss was computed and the skill’s robot rate. In every\nfamily the validation loss reaches its minimum early and is then flat or rising\nwhile the training loss keeps falling, regardless of the robot rate\n(36–100% insert-given-pick); $\\pi_{0.5}$ finetuning uses no validation\nsplit.",
+      "source_url": "https://arxiv.org/html/2610.40828v1/fig_loss_curves_family_serif.svg",
+      "path": "figures/figure-09-01.svg",
+      "status": "saved"
+    }
+  ],
+  "figure_coverage": "HTML 中 figure 的 img/object 资源；不保证覆盖 PDF 全部图像",
+  "author_affiliation_evidence": {
+    "source_url": "https://arxiv.org/html/2610.40828v1",
+    "locator": "HTML 署名区 .ltx_authors",
+    "author_blocks": [
+      {
+        "author_text": "Ammar N. Abbas *",
+        "affiliation_text": [
+          "Nivesh Gadipudi, Giulia Vilone, Jim Gibbons"
+        ]
+      },
+      {
+        "author_text": "Aayush Jain *",
+        "affiliation_text": [
+          "Analog Devices, Inc., EdgeAI Robotics, Limerick, Ireland"
+        ]
+      },
+      {
+        "author_text": "Prashanth Viswanath",
+        "affiliation_text": [
+          "* Equal contribution. Contact: ammar.abbas@analog.com"
+        ]
+      }
+    ],
+    "association_verified": false,
+    "note": "HTML 可能丢失上标或合并多人的单位，须对照原文核实对应关系。"
+  }
+}

@@ -1,5 +1,8 @@
 # second proprio
 
+当前版本：**v1.1（1.1.0）**。参见 [版本记录](CHANGELOG.md) 和
+[v1.1 代码审计](docs/code-audit-v1.1.md)。
+
 你的个人数字化技能仓库：论文追踪、互动课程、每日复盘与 llq 关心提醒。
 内容以本地 Markdown 保存，代码与技能纳入 Git，个人记录默认不进入版本库。
 
@@ -14,8 +17,10 @@
 
 Mac 第一版使用 Tauri 2＋React，通过本机 Unix Socket 连接持久 Python 服务。
 安装后的应用使用附带运行时，数据继续留在当前仓库。关闭窗口驻留菜单栏，退出
-界面后后台继续工作；暂停 AI、取消任务、停止后台是彼此独立的操作。
+界面后后台继续工作；暂停沉淀、取消任务、停止后台是彼此独立的操作。
 日常配置、论文和课程编辑、笔记反馈、复盘来源、心情记录均可在 App 内完成。
+首页以可配置的自我叩问开始，各组内容默认折叠。论文支持本机个人评分，并按基本
+信息、中文摘要、Key insight、管线、方法及实验的顺序阅读。
 
 在项目根目录使用：
 
@@ -65,6 +70,10 @@ App 保存配置时使用同一 Schema，并显示本机保存与服务器同步
 
 ## 每日复盘的数据来源
 
+App 的“设置 → 复盘”可以选择 ChatGPT 导出、规范化快照或 Codex 本机对话目录，
+并查看真实覆盖范围。Codex 的 `~/.codex/sessions` 只提取主会话用户文字和最终
+回复，排除内部推理、工具与子代理日志；来源明确标为 Codex，不冒充网页端历史。
+
 后台 CLI 不能仅凭 ChatGPT 登录自动读出聊天历史。导入你提供的
 `conversations.json`，或应用内工具保存的规范化快照：
 
@@ -96,16 +105,16 @@ Mac 登录后由 launchd 托管持久服务，Codex CLI 串行生成内容，不
 Codex 登录与额度可用；睡眠或关机会延迟内容。
 通知能否显示还受 macOS 的通知权限和专注模式影响。
 
-服务器只负责排队与公开论文元数据。SSH 未修复前，本机按相同配置补建任务，
-保持可用。SSH同步只传白名单配置与任务信封；模型凭据、聊天、笔记、心情和
+服务器只负责排队与公开论文元数据，SSH 与轻量部署已完成验证。服务器暂时不可达
+时，本机按相同配置补建任务。SSH 同步只传白名单配置与任务信封；模型凭据、聊天、笔记、心情和
 论文附件不会上传。服务器脚本已准备与部署已成功是两个不同状态。
 
 ## 开发与验收
 
 ```sh
 uv run pytest -q
-uv run yapf --style google --diff --recursive src tests courses/examples
-uv run pylint src/second_proprio courses/examples
+uv run yapf --style google --diff --recursive src tests courses/examples packaging
+uv run pylint src/second_proprio courses/examples packaging/*.py tests
 npm --prefix desktop ci
 npm --prefix desktop test
 npm --prefix desktop run build
@@ -115,4 +124,4 @@ uv run python packaging/build_app.py
 
 Google 风格需要代码审查配合，格式化器并不验证注释语言和算法正确性。
 技能入口为 `.agents/skills/sp-arxiv`、`sp-course`、`sp-daily-review`、`sp-llq`。
-不配置 Git 远端，不自动推送。更改私密目录时必须同时检查 Git 排除规则。
+Git 提交与远端推送分开进行，不自动推送。更改私密目录时必须同时检查 Git 排除规则。

@@ -18,20 +18,13 @@ import xml.etree.ElementTree as element_tree
 
 from bs4 import BeautifulSoup
 
+from second_proprio import config as configuration
+
 _ID_PATTERN = re.compile(
     r"(\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Z]{2})?/\d{7})(?:v(\d+))?")
 _LAST_REQUEST = 0.0
 _ALLOWED_HOSTS = {"arxiv.org", "export.arxiv.org", "rss.arxiv.org"}
 _MAX_DOWNLOAD_BYTES = 30 * 1024 * 1024
-
-
-def _write_json(path: Path, value: object) -> None:
-    """原子替换 JSON，避免中断留下不完整文件。"""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n",
-                         encoding="utf-8")
-    temporary.replace(path)
 
 
 def _read_json(path: Path, default: object) -> object:
@@ -43,10 +36,8 @@ def _read_json(path: Path, default: object) -> object:
 
 def _directory(root: Path, config: dict, name: str) -> Path:
     """验证输出目录位于项目根目录内。"""
-    result = (root / config.get("paths", {}).get(name, name)).resolve()
-    if not result.is_relative_to(root.resolve()):
-        raise ValueError(f"目录必须位于项目内：{name}")
-    return result
+    return configuration.resolve_path(root,
+                                      config.get("paths", {}).get(name, name))
 
 
 def _fetch(root: Path, config: dict, url: str, *, ttl: int = 3600) -> bytes:
@@ -291,8 +282,8 @@ def collect(root: Path, config: dict) -> list[dict]:
                     key=lambda item: (item.get("updated") or item.get(
                         "published", ""), item["id"], item["version"]),
                     reverse=True)
-    _write_json(candidate_file, result)
-    _write_json(
+    configuration.atomic_json(candidate_file, result)
+    configuration.atomic_json(
         state / "paper-collection-report.json", {
             "collected_at": now.isoformat(),
             "candidate_count": len(result),
@@ -313,6 +304,21 @@ def _prepare_html(root: Path, config: dict, record: dict,
     if article is None:
         raise ValueError("HTML 没有论文 article，不能作为完整正文")
     (directory / "source.html").write_bytes(data)
+    author_blocks = []
+    for author in article.select(".ltx_authors .ltx_creator.ltx_role_author"):
+        name = author.select_one(".ltx_personname")
+        affiliations = []
+        for affiliation in author.select(".ltx_role_affiliation"):
+            # 保留原始对应片段作为线索，不能把 HTML 排版位置当作已核实归属。
+            text = affiliation.get_text(" ", strip=True)
+            text = re.sub(r"^Affiliation:\s*", "", text)
+            if text:
+                affiliations.append(text)
+        if name and affiliations:
+            author_blocks.append({
+                "author_text": name.get_text(" ", strip=True),
+                "affiliation_text": affiliations,
+            })
     for unwanted in article.find_all(["script", "style"]):
         unwanted.decompose()
     # 保留原始 TeX，便于解释符号并与 PDF 交叉核对。
@@ -350,12 +356,19 @@ def _prepare_html(root: Path, config: dict, record: dict,
             except (OSError, ValueError) as error:
                 entry.update({"status": "failed", "error": str(error)})
             figures.append(entry)
-    _write_json(directory / "figures.json", figures)
+    configuration.atomic_json(directory / "figures.json", figures)
     return {
         "source_format": "html",
         "source_url": url,
         "figures": figures,
-        "figure_coverage": "HTML 中 figure 的 img/object 资源；不保证覆盖 PDF 全部图像"
+        "figure_coverage": "HTML 中 figure 的 img/object 资源；不保证覆盖 PDF 全部图像",
+        "author_affiliation_evidence": {
+            "source_url": url,
+            "locator": "HTML 署名区 .ltx_authors",
+            "author_blocks": author_blocks,
+            "association_verified": False,
+            "note": "HTML 可能丢失上标或合并多人的单位，须对照原文核实对应关系。",
+        },
     }
 
 
@@ -411,7 +424,7 @@ def _prepare_source(root: Path, config: dict, record: dict,
     if not texts:
         raise ValueError("源码包未发现可读 TeX 正文")
     (directory / "source.txt").write_text("\n".join(texts), encoding="utf-8")
-    _write_json(directory / "figures.json", figures)
+    configuration.atomic_json(directory / "figures.json", figures)
     return {
         "source_format": "tex",
         "source_url": url,
@@ -436,7 +449,7 @@ def _prepare_pdf(root: Path, config: dict, record: dict,
     if len(text.strip()) < 100:
         raise ValueError("PDF 缺少可读文本，需要 OCR 或视觉阅读")
     (directory / "source.txt").write_text(text, encoding="utf-8")
-    _write_json(directory / "figures.json", [])
+    configuration.atomic_json(directory / "figures.json", [])
     return {
         "source_format": "pdf",
         "source_url": url,
@@ -475,7 +488,7 @@ def prepare(root: Path, config: dict, limit: int = 3) -> list[dict]:
             continue
         attempted += 1
         directory.mkdir(parents=True, exist_ok=True)
-        _write_json(directory / "metadata.json", record)
+        configuration.atomic_json(directory / "metadata.json", record)
         errors = []
         details = None
         for handler in (_prepare_html, _prepare_source, _prepare_pdf):
@@ -497,7 +510,7 @@ def prepare(root: Path, config: dict, limit: int = 3) -> list[dict]:
                 errors,
             **(details or {})
         }
-        _write_json(directory / "preparation.json", status)
+        configuration.atomic_json(directory / "preparation.json", status)
         if details:
             prepared.append({
                 **record, "paper_dir": str(directory.relative_to(root)),
@@ -509,7 +522,7 @@ def prepare(root: Path, config: dict, limit: int = 3) -> list[dict]:
                 "version": record["version"],
                 "errors": errors
             })
-    _write_json(
+    configuration.atomic_json(
         _directory(root, config, "state") / "paper-preparation-report.json", {
             "attempted":
                 attempted,

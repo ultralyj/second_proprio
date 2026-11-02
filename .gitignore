@@ -2,12 +2,16 @@
 .state/
 private/
 config/settings.json
+.env
+.env.*
+!.env.example
 __pycache__/
 *.pyc
 .pytest_cache/
 .DS_Store
 *.egg-info/
 papers/**/source.pdf
+papers/**/paper.pdf
 papers/**/source.tar*
 papers/**/source.tex
 papers/**/source.html
@@ -17,6 +21,7 @@ INDEX.md
 
 desktop/node_modules/
 desktop/dist/
+desktop/*.tsbuildinfo
 desktop/src-tauri/target/
 desktop/src-tauri/gen/
 packaging/runtime/

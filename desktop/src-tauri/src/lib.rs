@@ -6,12 +6,19 @@ use std::{
     io::{BufRead, BufReader, Read, Write},
     os::unix::net::UnixStream,
     path::{Path, PathBuf},
-    process::{Command, Stdio},
-    time::{Duration, Instant},
+    process::Command,
+    time::Duration,
 };
 use tauri::{Manager, State};
 use tauri_plugin_dialog::DialogExt;
+
+mod process;
+use process::run_bounded;
+#[cfg(not(target_os = "macos"))]
 use tauri_plugin_notification::NotificationExt;
+
+#[cfg(target_os = "macos")]
+mod notification;
 
 #[derive(Clone)]
 struct Workspace {
@@ -58,6 +65,7 @@ fn allowed_method(method: &str) -> bool {
             | "config.validate"
             | "config.sync"
             | "tasks.list"
+            | "tasks.acknowledge"
             | "tasks.detail"
             | "tasks.submit"
             | "tasks.pause"
@@ -67,6 +75,7 @@ fn allowed_method(method: &str) -> bool {
             | "content.list"
             | "content.read"
             | "content.save"
+            | "content.rate"
             | "content.draft"
             | "content.history"
             | "content.restore"
@@ -75,6 +84,7 @@ fn allowed_method(method: &str) -> bool {
             | "content.reject"
             | "course.learned"
             | "review.import"
+            | "review.sources"
             | "review.add"
             | "relationship.get"
             | "relationship.save"
@@ -212,21 +222,21 @@ async fn choose_import(app: tauri::AppHandle) -> Result<Option<String>, String> 
     .await
     .map_err(|e| e.to_string())?
 }
-fn run_bounded(mut command: Command, timeout: Duration) -> Result<std::process::Output, String> {
-    command.stdout(Stdio::piped()).stderr(Stdio::piped());
-    let mut child = command.spawn().map_err(|e| e.to_string())?;
-    let start = Instant::now();
-    loop {
-        if child.try_wait().map_err(|e| e.to_string())?.is_some() {
-            return child.wait_with_output().map_err(|e| e.to_string());
-        }
-        if start.elapsed() > timeout {
-            let _ = child.kill();
-            let _ = child.wait();
-            return Err("操作超时，请查看后台状态".into());
-        }
-        std::thread::sleep(Duration::from_millis(100));
-    }
+#[tauri::command]
+async fn choose_directory(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.dialog()
+            .file()
+            .blocking_pick_folder()
+            .map(|file| {
+                file.into_path()
+                    .map(|p| p.to_string_lossy().into_owned())
+                    .map_err(|e| e.to_string())
+            })
+            .transpose()
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 fn engine_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let bundled = app
@@ -299,6 +309,7 @@ async fn check_login(workspace: State<'_, Workspace>) -> Result<Value, String> {
 }
 fn show_main(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
+        let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
     }
@@ -323,18 +334,43 @@ pub fn run() {
         let value: Value = serde_json::from_str(&input).unwrap_or(json!({}));
         builder
             .setup(move |app| {
-                let title = value["title"].as_str().unwrap_or("second proprio");
+                let title = value["title"]
+                    .as_str()
+                    .unwrap_or("second proprio")
+                    .to_owned();
                 let body = value["message"]
                     .as_str()
                     .or_else(|| value["body"].as_str())
-                    .unwrap_or("");
-                match app.notification().builder().title(title).body(body).show() {
-                    Ok(_) => println!("{}", json!({"status":"accepted"})),
-                    Err(error) => {
-                        println!("{}", json!({"status":"error","message":error.to_string()}))
-                    }
-                }
-                app.handle().exit(0);
+                    .unwrap_or("")
+                    .to_owned();
+                let handle = app.handle().clone();
+                std::thread::spawn(move || {
+                    #[cfg(target_os = "macos")]
+                    let result = notification::submit(&title, &body);
+                    #[cfg(not(target_os = "macos"))]
+                    let result = handle
+                        .notification()
+                        .builder()
+                        .title(title)
+                        .body(body)
+                        .show()
+                        .map_err(|error| error.to_string());
+                    let exit_code = match result {
+                        Ok(()) => {
+                            println!("{}", json!({"status":"accepted", "accepted":true}));
+                            0
+                        }
+                        Err(error) => {
+                            println!(
+                                "{}",
+                                json!({"status":"error", "accepted":false, "message":error})
+                            );
+                            1
+                        }
+                    };
+                    let _ = std::io::stdout().flush();
+                    handle.exit(exit_code);
+                });
                 Ok(())
             })
             .run(context)
@@ -354,14 +390,17 @@ pub fn run() {
             open_url,
             read_asset,
             choose_import,
+            choose_directory,
             service_control,
             check_login
         ])
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            notification::install_foreground_delegate();
             use tauri::menu::{Menu, MenuItem};
             let open = MenuItem::with_id(app, "open", "打开 second proprio", true, None::<&str>)?;
-            let pause = MenuItem::with_id(app, "pause", "暂停 AI 任务", true, None::<&str>)?;
-            let resume = MenuItem::with_id(app, "resume", "恢复 AI 任务", true, None::<&str>)?;
+            let pause = MenuItem::with_id(app, "pause", "暂停沉淀", true, None::<&str>)?;
+            let resume = MenuItem::with_id(app, "resume", "恢复沉淀", true, None::<&str>)?;
             let quit =
                 MenuItem::with_id(app, "quit-ui", "退出界面（后台继续）", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&open, &pause, &resume, &quit])?;
@@ -391,8 +430,17 @@ pub fn run() {
                 let _ = window.hide();
             }
         })
-        .run(context)
-        .expect("second proprio 启动失败");
+        .build(context)
+        .expect("second proprio 启动失败")
+        .run(|app, event| {
+            // Dock 点击已运行的应用会发送 Reopen，不会触发第二实例回调。
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = event {
+                show_main(app);
+            }
+            #[cfg(not(target_os = "macos"))]
+            let _ = (app, event);
+        });
 }
 
 #[cfg(test)]

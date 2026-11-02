@@ -1,3 +1,4 @@
+/** 提供无业务状态的基础界面组件。 */
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, LoaderCircle, AlertCircle, FileText, Check } from "lucide-react";
 import type { ReactNode } from "react";

@@ -435,3 +435,24 @@ def test_remote_metadata_survives_local_lookback_window(tmp_path, config, now,
         assert calls == [True], "已同步的旧候选必须进入解读流程"
     finally:
         store.close()
+
+
+def test_dashboard_handles_desktop_states_and_custom_paths(
+        tmp_path, config, now):
+    """命令行首页兼容桌面任务状态，并遵循配置中的资料目录。"""
+    store, identifier = _queue(tmp_path, "course", now)
+    try:
+        store.finish(identifier, "waiting_review", {"summary": "等待采纳"})
+        cancelled = store.add("review",
+                              (now + dt.timedelta(seconds=1)).isoformat(),
+                              "test-config")
+        store.finish(cancelled, "cancelled", {"summary": "已取消"})
+        config["paths"].update(courses="learning", private="personal")
+        runner.dashboard(tmp_path, config, store, now)
+        page = (tmp_path / "INDEX.md").read_text("utf-8")
+        assert '"waiting_review": 1' in page
+        assert '"cancelled": 1' in page
+        assert "(learning/README.md)" in page
+        assert f"(personal/relationship/{now.date()}.md)" in page
+    finally:
+        store.close()

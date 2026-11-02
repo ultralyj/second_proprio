@@ -137,6 +137,7 @@
     "auto_run": true
   },
   "desktop": {
+    "home_question": "此刻，我最值得投入的一件事是什么？",
     "appearance": "system",
     "notifications": "content_and_action",
     "launch_at_login": true

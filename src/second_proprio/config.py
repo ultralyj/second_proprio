@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import jsonschema
 
@@ -42,19 +43,63 @@ def resolve_path(root: Path, relative: str) -> Path:
     return candidate
 
 
+def resolve_review_source(root: Path, config: dict) -> Path:
+    """解析只读聊天来源；外部绝对目录不会改变私密资料存储位置。
+
+    Args:
+        root: 项目根目录。
+        config: 业务配置。
+
+    Returns:
+        显式配置的绝对来源目录，或私密目录内的相对来源目录。
+
+    Raises:
+        ValueError: 路径为空、相对路径越出私密目录或目标不是目录。
+    """
+    value = config["review"]["source_directory"]
+    if not value.strip() or "\x00" in value:
+        raise ValueError("请填写聊天记录目录")
+    source = Path(value).expanduser()
+    if not source.is_absolute():
+        source = resolve_path(root, value)
+        private = resolve_path(root, config["paths"]["private"])
+        if not source.is_relative_to(private):
+            raise ValueError("相对聊天来源目录必须位于私密目录内")
+    source = source.resolve()
+    if source.exists() and not source.is_dir():
+        raise ValueError("聊天来源必须是目录，请选择 JSON 文件所在的文件夹")
+    return source
+
+
 def validate(root: Path, value: dict) -> None:
-    """根据版本化 Schema 校验配置及目录约束。"""
+    """校验配置及数据目录边界，不写入配置文件。
+
+    Args:
+        root: 项目根目录，提供当前版本的 JSON Schema。
+        value: 待校验的完整业务配置。
+
+    Raises:
+        jsonschema.ValidationError: 字段类型或取值不符合 Schema。
+        ValueError: 时区无效，或数据目录越界、重叠、占用项目根目录。
+    """
     schema = json.loads((root / "config/schema.json").read_text("utf-8"))
     jsonschema.Draft202012Validator(
         schema, format_checker=jsonschema.FormatChecker()).validate(value)
+    directories = []
     for relative in value["paths"].values():
-        resolve_path(root, relative)
-    private = resolve_path(root, value["paths"]["private"])
-    source = resolve_path(root, value["review"]["source_directory"])
-    if not source.is_relative_to(private):
-        raise ValueError("聊天来源目录必须位于私密目录内")
-    from zoneinfo import ZoneInfo  # pylint: disable=import-outside-toplevel
-    ZoneInfo(value["timezone"])
+        directory = resolve_path(root, relative)
+        if directory == root.resolve():
+            raise ValueError("数据目录不能使用项目根目录")
+        if any(
+                directory.is_relative_to(other) or
+                other.is_relative_to(directory) for other in directories):
+            raise ValueError("论文、课程、私密记录和运行状态目录不能相同或嵌套")
+        directories.append(directory)
+    resolve_review_source(root, value)
+    try:
+        ZoneInfo(value["timezone"])
+    except (ZoneInfoNotFoundError, ValueError) as error:
+        raise ValueError(f"无效时区：{value['timezone']}") from error
 
 
 def load(root: Path) -> dict:

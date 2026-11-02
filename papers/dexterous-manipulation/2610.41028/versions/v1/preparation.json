@@ -1,0 +1,115 @@
+{
+  "prepared_at": "2026-11-02T05:02:35.735274+00:00",
+  "status": "ready_for_review",
+  "errors": [],
+  "source_format": "html",
+  "source_url": "https://arxiv.org/html/2610.41028v1",
+  "figures": [
+    {
+      "figure_id": "S0.F1",
+      "caption": "Fig. 1: CIMI transfers contact-sensitive skills from human demonstrations\nto robot hands. Shared fingertip modules provide corresponding contact surfaces\nand camera views for human demonstration and execution across different robot hands. Bottom: tasks\ninvolving deformable objects, multi-finger coordination, and precise contact.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/teaser.png",
+      "path": "figures/figure-01-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S1.F2",
+      "caption": "Fig. 2: Contact connects demonstration and learning in CIMI. The demonstration\ninterface captures contact-surface trajectories and observations, then constructs\nrobot demonstrations through contact-alignment-first retargeting and\ncontext-view reprojection. The learning interface predicts relative contact-surface\ntrajectories and realizes them through coordinated wrist and finger control.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/pipeline.png",
+      "path": "figures/figure-03-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S3.F4",
+      "caption": "Fig. 3: Retargeting priorities. (a) Context-alignment-first retargeting matches\ncontext-camera poses but can leave contact surfaces misaligned. (b) Contact-alignment-first\nretargeting adjusts the wrist to improve contact alignment;\nreprojection corrects the viewpoint mismatch. Gray: human;\nblue: robot.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/retargeting.png",
+      "path": "figures/figure-04-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S3.F4",
+      "caption": "Fig. 3: Retargeting priorities. (a) Context-alignment-first retargeting matches\ncontext-camera poses but can leave contact surfaces misaligned. (b) Contact-alignment-first\nretargeting adjusts the wrist to improve contact alignment;\nreprojection corrects the viewpoint mismatch. Gray: human;\nblue: robot.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/reprojection.png",
+      "path": "figures/figure-04-02.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S3.F4.fig1",
+      "caption": "Fig. 3: Retargeting priorities. (a) Context-alignment-first retargeting matches\ncontext-camera poses but can leave contact surfaces misaligned. (b) Contact-alignment-first\nretargeting adjusts the wrist to improve contact alignment;\nreprojection corrects the viewpoint mismatch. Gray: human;\nblue: robot.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/retargeting.png",
+      "path": "figures/figure-05-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S3.F4.fig2",
+      "caption": "Fig. 4: Context-view reprojection and robot-geometry overlay. Recorded web-space (green) and wrist (orange) stereo images are reprojected\nto camera poses determined by retargeting. Robot geometry is rendered at the\nretargeted configuration and overlaid on these views to produce RGB training\nobservations from the robot perspective. This conversion is performed offline.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/reprojection.png",
+      "path": "figures/figure-06-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S3.F5",
+      "caption": "Fig. 5: Real-world rollouts and failure cases. Orange-bordered insets ( ) show contact-camera views;\nwithin each inset, blue lines ( ) mark the contact surface\nand yellow outlines ( ) mark object boundaries.\nGreen ( ) and blue ( )\nbackgrounds show successful LEAP and Wuji rollouts, respectively;\nred ( ) marks CTX and WristJoint failures.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/rollout.png",
+      "path": "figures/figure-07-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S4.F6",
+      "caption": "Fig. 6: 15-minute collection throughput on coin picking and\nbulb installation.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/collection_efficiency.svg",
+      "path": "figures/figure-10-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S1.F1",
+      "caption": "Fig. S1: Transformation tree for visual contact-surface tracking. Each edge\nspecifies the child frame’s pose in its parent frame. Dashed yellow edges are\nestimated from videos; solid orange edges are fixed mounting calibrations.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/supp_tracking_tree.svg",
+      "path": "figures/figure-12-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S1.F2a",
+      "caption": "Fig. S2: Qualitative lighting robustness of fiducial detection. (a,b) Low-light examples. (c,d) Examples with spatially varying colored\nillumination. For each condition, the left panel shows dense keypoints with\nenlarged tag-grid insets, and the right panel shows detected tag outlines.\nAll detection overlays are preserved from the original images.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/supp_lighting_robustness.png",
+      "path": "figures/figure-14-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S1.F3",
+      "caption": "Fig. S3: Contact-surface planner architecture. The upper path encodes\nthe $V$ configured RGB views and the current inter-finger geometry into a\ncondition vector. The lower path evaluates the conditional velocity network and\nintegrates it for three Euler steps to predict an $H$ -step contact-surface\ntrajectory. Blue groups RGB processing, green groups geometric inputs,\nconditioning, and the predicted trajectory, and orange groups flow prediction.\nDashed boxes and arrows identify optional camera inputs.\nHere $F$ is the number of controlled fingers and each contact-surface pose has\nnine coordinates (three translation and six rotation coordinates).",
+      "source_url": "https://arxiv.org/html/2610.41028v1/supp_planner_architecture.svg",
+      "path": "figures/figure-15-01.svg",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S2.F4",
+      "caption": "Fig. S4: Visual augmentation for coin picking. Rows show the thumb\nand middle-finger contact views, followed by wrist context views with nominal\nand perturbed camera extrinsics. The perturbed wrist render also varies robot\nlighting and materials. Each base image has four whole-image MIL blends with\nphotometric augmentation and four photometric-only variants. Blend columns\ngive original/texture percentages; the two 60/40 candidates use distinct textures.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/figures/coin_augmentation.png",
+      "path": "figures/figure-19-01.png",
+      "status": "saved"
+    },
+    {
+      "figure_id": "S2.F5",
+      "caption": "Fig. S5: Contact-surface controller architecture. The deterministic\ngeometric front end converts the planner’s relative contact-surface trajectory\nto ordered target corners and constructs absolute and reference-relative frame\nfeatures. A shared residual MLP then decodes every horizon step in one batched\nforward pass. Green denotes inputs and outputs, blue denotes deterministic\ngeometric feature construction, and orange denotes the learned decoder.\nHere $F$ is the number of controlled four-joint fingers, $d_{x}$ is the per-step\nfeature dimension, and $H=16$ is the trajectory horizon.",
+      "source_url": "https://arxiv.org/html/2610.41028v1/supp_controller_architecture.svg",
+      "path": "figures/figure-21-01.svg",
+      "status": "saved"
+    }
+  ],
+  "figure_coverage": "HTML 中 figure 的 img/object 资源；不保证覆盖 PDF 全部图像",
+  "author_affiliation_evidence": {
+    "source_url": "https://arxiv.org/html/2610.41028v1",
+    "locator": "HTML 署名区 .ltx_authors",
+    "author_blocks": [
+      {
+        "author_text": "Tianyu Qiu",
+        "affiliation_text": [
+          "National University of Singapore RoboScience South China University of Technology * Equal contribution † Corresponding author Project page: nus-lins-lab.github.io/CIMIWeb/"
+        ]
+      }
+    ],
+    "association_verified": false,
+    "note": "HTML 可能丢失上标或合并多人的单位，须对照原文核实对应关系。"
+  }
+}

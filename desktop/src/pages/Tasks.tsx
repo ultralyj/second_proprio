@@ -1,3 +1,4 @@
+/** 读取任务状态并发送单项控制请求；轮询不直接改写队列。 */
 import { useCallback, useEffect, useState } from "react";
 import { Pause, Play, RotateCcw, Square, ChevronRight } from "lucide-react";
 import { rpc, errorText, kindNames, formatTime } from "../api";
@@ -103,15 +104,14 @@ export default function Tasks({
     : null;
   const active = new Set(["pending", "running", "cancel_requested"]);
   const attention = new Set(["failed", "waiting_source", "waiting_review"]);
+  const matchesFilter = (task: Task, value: string) =>
+    value === "all" ||
+    (value === "active" && active.has(task.status)) ||
+    (value === "attention" && attention.has(task.status)) ||
+    (value === "completed" &&
+      ["completed", "skipped", "cancelled"].includes(task.status));
   const visible = tasks
-    .filter(
-      (task) =>
-        filter === "all" ||
-        (filter === "active" && active.has(task.status)) ||
-        (filter === "attention" && attention.has(task.status)) ||
-        (filter === "completed" &&
-          ["completed", "skipped", "cancelled"].includes(task.status)),
-    )
+    .filter((task) => matchesFilter(task, filter))
     .sort(
       (a, b) =>
         Number(active.has(b.status)) - Number(active.has(a.status)) ||
@@ -130,18 +130,18 @@ export default function Tasks({
             void action(
               "tasks.pause",
               { paused: !paused },
-              paused ? "AI 任务已恢复" : "已暂停后续 AI 任务；当前任务继续",
+              paused ? "沉淀已恢复" : "已暂停沉淀；当前任务继续",
             )
           }
         >
           {paused ? <Play size={14} /> : <Pause size={14} />}{" "}
-          {paused ? "恢复 AI 任务" : "暂停 AI 任务"}
+          {paused ? "恢复沉淀" : "暂停沉淀"}
         </button>
       </header>
       {error && <ErrorNotice message={error} onDismiss={() => setError("")} />}
       {paused && (
         <div className="inline-notice">
-          后续 AI 任务已暂停。当前任务继续，关心提醒独立运行。
+          沉淀已暂停。当前任务继续，关心提醒独立运行。
         </div>
       )}
       <div className="tabs">
@@ -158,18 +158,7 @@ export default function Tasks({
           >
             {label}
             <span>
-              {
-                tasks.filter(
-                  (task) =>
-                    key === "all" ||
-                    (key === "active" && active.has(task.status)) ||
-                    (key === "attention" && attention.has(task.status)) ||
-                    (key === "completed" &&
-                      ["completed", "skipped", "cancelled"].includes(
-                        task.status,
-                      )),
-                ).length
-              }
+              {tasks.filter((task) => matchesFilter(task, key)).length}
             </span>
           </button>
         ))}
